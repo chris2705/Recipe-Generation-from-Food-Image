@@ -12,7 +12,6 @@ from torchvision import transforms
 from Foodimg2Ing.utils.output_utils import prepare_output
 from PIL import Image
 import time
-from tensorflow.keras.preprocessing import image
 from Foodimg2Ing import app
 
 
@@ -69,7 +68,7 @@ def output(uploadedfile):
 
     uploaded_file=uploadedfile
 
-    img=image.load_img(uploaded_file)
+    img=Image.open(uploaded_file).convert('RGB')
     
     show_anyways = False #if True, it will show the recipe even if it's not valid
     transf_list = []

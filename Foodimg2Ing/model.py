@@ -29,8 +29,8 @@ def label2onehot(labels, pad_value):
 
 
 def mask_from_eos(ids, eos_value, mult_before=True):
-    mask = torch.ones(ids.size()).to(device).byte()
-    mask_aux = torch.ones(ids.size(0)).to(device).byte()
+    mask = torch.ones(ids.size()).to(device).bool()
+    mask_aux = torch.ones(ids.size(0)).to(device).bool()
 
     # find eos in ingredient prediction
     for idx in range(ids.size(1)):
