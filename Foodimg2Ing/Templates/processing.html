@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5 d-flex flex-column justify-content-center align-items-center" style="min-height: 70vh;">
+    
+    <div class="card shadow-lg border-0 rounded-4 p-5 text-center" style="max-width: 500px; width: 100%; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+        
+        <!-- Animated Icon/Spinner -->
+        <div class="mb-4 position-relative d-inline-block">
+            <div class="spinner-border text-primary" style="width: 4rem; height: 4rem; border-width: 0.3rem;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <i class="fas fa-utensils text-primary position-absolute top-50 start-50 translate-middle fs-4"></i>
+        </div>
+
+        <h3 class="fw-bold font-outfit mb-2 text-dark">Analyzing Your Food...</h3>
+        <p class="text-muted mb-4 small">AI is identifying ingredients and generating the recipe.</p>
+
+        <!-- Progress Bar -->
+        <div class="progress mb-4" style="height: 10px; border-radius: 5px;">
+            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+
+        <!-- Animated Pipeline Status List -->
+        <ul class="list-unstyled text-start mb-0 ps-3" id="processing-pipeline">
+            <li class="mb-2 text-muted" id="step-1"><i class="fas fa-circle-notch fa-spin me-2 small"></i> Upload Complete</li>
+            <li class="mb-2 text-muted opacity-50" id="step-2"><i class="fas fa-circle me-2 small"></i> Extracting Features</li>
+            <li class="mb-2 text-muted opacity-50" id="step-3"><i class="fas fa-circle me-2 small"></i> Detecting Food</li>
+            <li class="mb-2 text-muted opacity-50" id="step-4"><i class="fas fa-circle me-2 small"></i> Predicting Ingredients</li>
+            <li class="text-muted opacity-50" id="step-5"><i class="fas fa-circle me-2 small"></i> Generating Recipe</li>
+        </ul>
+
+    </div>
+
+    <!-- Hidden form for redirection -->
+    <form id="redirect-form" action="{{ url_for('result') }}" method="GET">
+        <input type="hidden" name="result_id" value="{{ result_id }}">
+    </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const progressBar = document.getElementById("progress-bar");
+        const redirectForm = document.getElementById("redirect-form");
+        
+        // Helper to complete a step
+        function markStepComplete(stepNum, nextStepNum) {
+            const currentStep = document.getElementById(`step-${stepNum}`);
+            if (currentStep) {
+                currentStep.innerHTML = '<i class="fas fa-check-circle text-success me-2"></i> ' + currentStep.innerText;
+                currentStep.classList.remove('opacity-50');
+            }
+            
+            const nextStep = document.getElementById(`step-${nextStepNum}`);
+            if (nextStep) {
+                nextStep.innerHTML = '<i class="fas fa-circle-notch fa-spin text-primary me-2"></i> ' + nextStep.innerText;
+                nextStep.classList.remove('opacity-50');
+            }
+        }
+
+        // Timing sequence (Total: 5 seconds as requested)
+        setTimeout(() => {
+            progressBar.style.width = "20%";
+            markStepComplete(1, 2);
+        }, 1000); // 1s
+
+        setTimeout(() => {
+            progressBar.style.width = "40%";
+            markStepComplete(2, 3);
+        }, 2000); // 2s
+
+        setTimeout(() => {
+            progressBar.style.width = "60%";
+            markStepComplete(3, 4);
+        }, 3000); // 3s
+
+        setTimeout(() => {
+            progressBar.style.width = "80%";
+            markStepComplete(4, 5);
+        }, 4000); // 4s
+
+        setTimeout(() => {
+            progressBar.style.width = "100%";
+            const lastStep = document.getElementById(`step-5`);
+            if (lastStep) {
+                lastStep.innerHTML = '<i class="fas fa-check-circle text-success me-2"></i> ' + lastStep.innerText;
+            }
+            
+            // Redirect smoothly
+            setTimeout(() => {
+                redirectForm.submit();
+            }, 500);
+            
+        }, 5000); // 5s
+    });
+</script>
+{% endblock %}

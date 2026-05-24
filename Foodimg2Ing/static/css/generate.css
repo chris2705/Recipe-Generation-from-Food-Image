@@ -1,0 +1,71 @@
+/* Generate Page Styles */
+
+.upload-area {
+    border-color: #dee2e6;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.upload-area.dragover {
+    border-color: var(--primary-color);
+    background-color: var(--primary-subtle);
+}
+
+.upload-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.max-h-300 {
+    max-height: 300px;
+}
+
+/* AI Pipeline */
+.pipeline-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+.pipeline-item.active .pipeline-icon {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color) !important;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+}
+
+.pipeline-item.active span {
+    color: var(--dark-color);
+    font-weight: 600;
+}
+
+/* Pulse animation for active pipeline item */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.pipeline-item.processing .pipeline-icon {
+    animation: pulse 1s infinite;
+    background-color: var(--warning-color);
+    border-color: var(--warning-color) !important;
+    color: #fff;
+}
+
+/* Sample Cards */
+.sample-card {
+    background-color: #fff;
+    cursor: pointer;
+}
+.sample-card:hover {
+    border-color: var(--primary-color) !important;
+}

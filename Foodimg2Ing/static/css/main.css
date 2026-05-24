@@ -1,0 +1,86 @@
+:root {
+    --primary-color: #ff6b6b;
+    --primary-hover: #ff5252;
+    --primary-subtle: #ffe3e3;
+    --secondary-color: #4a4a4a;
+    --dark-color: #1a1a1a;
+    --light-color: #f8f9fa;
+    --success-color: #20c997;
+    --warning-color: #ffc107;
+    --font-sans: 'Inter', sans-serif;
+    --font-heading: 'Outfit', sans-serif;
+}
+
+body {
+    font-family: var(--font-sans);
+    color: var(--secondary-color);
+    background-color: #fdfdfd;
+}
+
+h1, h2, h3, h4, h5, h6, .font-outfit {
+    font-family: var(--font-heading);
+    color: var(--dark-color);
+}
+
+/* Custom Utilities */
+.text-primary { color: var(--primary-color) !important; }
+.bg-primary { background-color: var(--primary-color) !important; }
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+.bg-primary-subtle { background-color: var(--primary-subtle) !important; }
+.border-primary-subtle { border-color: var(--primary-subtle) !important; }
+
+.hover-primary:hover { color: var(--primary-color) !important; }
+
+.hover-lift {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.hover-lift-sm {
+    transition: transform 0.2s ease-in-out;
+}
+.hover-lift-sm:hover {
+    transform: translateY(-2px);
+}
+
+.hover-bg-light:hover {
+    background-color: var(--light-color) !important;
+}
+
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), #ff9a9e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.bg-gradient-dark {
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+.z-index-0 { z-index: 0; }
+.z-index-1 { z-index: 1; }
+.z-index-2 { z-index: 2; }
+
+/* Navbar customization */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.navbar-brand {
+    font-family: var(--font-heading);
+    letter-spacing: -0.5px;
+}

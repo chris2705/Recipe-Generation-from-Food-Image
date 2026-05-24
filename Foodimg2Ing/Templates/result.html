@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <div class="mb-4">
+        <a href="{{ url_for('generate') }}" class="text-decoration-none text-secondary hover-primary"><i class="fas fa-arrow-left me-2"></i> Back to Generator</a>
+    </div>
+
+    <!-- Multi-recipe tabs if needed (usually the original script returns multiple recipes, but for UI sake we prioritize recipe 1) -->
+    <!-- The Python backend currently returns lists for title, ingredients, and recipe. -->
+    
+    <div class="row g-5">
+        <!-- Left Col: Image & Insights -->
+        <div class="col-lg-4">
+            <!-- Food Image Card -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 position-sticky top-0">
+                <div class="image-wrapper position-relative">
+                    {% if img %}
+                    <img src="{{ url_for('static', filename=img) }}" alt="Analyzed Food Image" class="img-fluid w-100 object-fit-cover" style="max-height: 400px;">
+                    {% else %}
+                    <div class="bg-light w-100 d-flex align-items-center justify-content-center text-muted" style="height: 300px;">
+                        <i class="fas fa-image fs-1"></i>
+                    </div>
+                    {% endif %}
+                    <div class="position-absolute bottom-0 start-0 w-100 p-3 bg-gradient-dark text-white">
+                        <span class="badge bg-primary mb-1">Analyzed</span>
+                        <h4 class="mb-0 fw-bold">{{ title[0] }}</h4>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 bg-white">
+                    <h6 class="fw-bold mb-3 font-outfit text-uppercase text-secondary small">AI Insights</h6>
+                    
+                    <div class="row g-2 mb-3">
+                        <!-- Coming Soon Insights -->
+                        <div class="col-6">
+                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 position-relative border">
+                                <span class="position-absolute top-0 end-0 badge bg-secondary" style="font-size: 0.5rem; transform: translate(25%, -25%);">Soon</span>
+                                <i class="fas fa-fire-alt text-warning mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Calories</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">--- kcal</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 position-relative border">
+                                <span class="position-absolute top-0 end-0 badge bg-secondary" style="font-size: 0.5rem; transform: translate(25%, -25%);">Soon</span>
+                                <i class="fas fa-clock text-info mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Prep Time</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">-- mins</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 position-relative border">
+                                <span class="position-absolute top-0 end-0 badge bg-secondary" style="font-size: 0.5rem; transform: translate(25%, -25%);">Soon</span>
+                                <i class="fas fa-tachometer-alt text-danger mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Difficulty</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">Medium</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 position-relative border">
+                                <span class="position-absolute top-0 end-0 badge bg-secondary" style="font-size: 0.5rem; transform: translate(25%, -25%);">Soon</span>
+                                <i class="fas fa-leaf text-success mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Diet</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">Various</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Col: Ingredients & Instructions -->
+        <div class="col-lg-8">
+            {% if title[0] != "Not a valid recipe!" %}
+            
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold font-outfit mb-0"><i class="fas fa-shopping-basket text-primary me-2"></i> Predicted Ingredients</h3>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="window.print()"><i class="fas fa-print"></i></button>
+                    </div>
+                    
+                    <div class="ingredients-container d-flex flex-wrap gap-2">
+                        {% for item in ingredients[0] %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-2 rounded-pill shadow-sm">
+                            <i class="fas fa-check-circle me-1 small"></i> {{ item }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <h3 class="fw-bold font-outfit mb-4"><i class="fas fa-list-ol text-primary me-2"></i> Cooking Instructions</h3>
+                    
+                    <div class="recipe-steps">
+                        {% for step in recipe[0] %}
+                        <div class="step-card bg-light rounded-4 p-4 mb-3 position-relative border shadow-sm transition-all hover-lift-sm">
+                            <div class="position-absolute top-0 start-0 translate-middle ms-4 mt-4 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 35px; height: 35px; font-weight: bold;">
+                                {{ loop.index }}
+                            </div>
+                            <div class="ms-4 ps-2">
+                                <p class="mb-0 text-dark fs-5">{{ step }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Error State -->
+            <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
+                <i class="fas fa-exclamation-triangle text-warning display-1 mb-4"></i>
+                <h2 class="fw-bold">Oh no!</h2>
+                <h4 class="text-muted">{{ recipe[0] }}</h4>
+                <p class="mt-4">We couldn't recognize a valid food item in the image. Please try uploading another photo.</p>
+                <a href="{{ url_for('generate') }}" class="btn btn-primary rounded-pill px-4 py-2 mt-3">Try Again</a>
+            </div>
+            {% endif %}
+
+            <!-- If there's a second recipe provided by the model -->
+            {% if title|length > 1 and title[1] != "Not a valid recipe!" %}
+            <div class="mt-5 pt-4 border-top">
+                <h4 class="fw-bold mb-4 text-muted"><i class="fas fa-lightbulb text-warning me-2"></i> Alternative Recipe Suggestion</h4>
+                <div class="accordion shadow-sm rounded-4" id="accordionAlt">
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed bg-light fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                {{ title[1] }}
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionAlt">
+                            <div class="accordion-body p-4">
+                                <h6 class="fw-bold mb-2">Ingredients:</h6>
+                                <p class="text-muted">{{ ', '.join(ingredients[1]) }}</p>
+                                
+                                <h6 class="fw-bold mt-4 mb-2">Instructions:</h6>
+                                <ol class="ps-3 text-muted">
+                                    {% for step in recipe[1] %}
+                                    <li class="mb-2">{{ step }}</li>
+                                    {% endfor %}
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

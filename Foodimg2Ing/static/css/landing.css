@@ -1,0 +1,99 @@
+/* Landing Page Styles */
+
+.hero-section {
+    background: radial-gradient(circle at top right, rgba(255, 107, 107, 0.05), transparent 50%),
+                radial-gradient(circle at bottom left, rgba(32, 201, 151, 0.05), transparent 50%);
+}
+
+.hero-title {
+    line-height: 1.1;
+    letter-spacing: -1px;
+}
+
+.tracking-wide {
+    letter-spacing: 2px;
+}
+
+.blob-shape {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(40px);
+}
+
+.filter-blur {
+    filter: blur(40px);
+}
+
+.floating-card {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px) translateX(-50%); }
+    to { opacity: 1; transform: translateY(0) translateX(-50%); }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.8s ease forwards;
+    opacity: 0;
+}
+.delay-1 { animation-delay: 0.5s; }
+.delay-2 { animation-delay: 1.2s; }
+
+/* Feature Cards */
+.feature-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+}
+.feature-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: var(--primary-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Timeline */
+.timeline-row::before {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background-color: #e9ecef;
+    z-index: 0;
+}
+@media (max-width: 767px) {
+    .timeline-row::before { display: none; }
+}
+.timeline-step {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* Upcoming Cards */
+.upcoming-card {
+    transition: all 0.3s ease;
+}
+.upcoming-card:hover {
+    border-color: var(--primary-color) !important;
+    background-color: #fff !important;
+}
+.rounded-bl {
+    border-bottom-left-radius: 8px;
+}

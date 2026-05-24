@@ -1,0 +1,29 @@
+/* Result Page Styles */
+
+.image-wrapper {
+    background-color: #000;
+}
+
+.insight-box {
+    transition: transform 0.2s;
+}
+.insight-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.ingredients-container .badge {
+    font-weight: 500;
+}
+
+.recipe-steps .step-card {
+    padding-left: 20px !important;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--primary-subtle);
+    color: var(--primary-color);
+}
+.accordion-button:not(.collapsed)::after {
+    filter: brightness(0) saturate(100%) invert(56%) sepia(85%) saturate(1915%) hue-rotate(320deg) brightness(101%) contrast(106%);
+}
