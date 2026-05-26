@@ -1,6 +1,6 @@
-from flask import render_template ,url_for,flash,redirect,request
+from flask import render_template, url_for, flash, redirect, request
 from Foodimg2Ing import app
-from Foodimg2Ing.output import output
+from Foodimg2Ing.services.hybrid_predictor import predict as hybrid_predict
 from werkzeug.utils import secure_filename
 import os
 import uuid
@@ -32,31 +32,24 @@ def predict():
     image_path = os.path.join(upload_dir, filename)
     imagefile.save(image_path)
     img = "images/uploads/" + filename
-    title, ingredients, recipe = output(image_path)
-    
+
+    # Use hybrid predictor (local model + optional Gemini fallback)
+    result_data = hybrid_predict(image_path, img)
+
     result_id = str(uuid.uuid4())
-    _TEMP_RESULTS[result_id] = {
-        'title': title,
-        'ingredients': ingredients,
-        'recipe': recipe,
-        'img': img
-    }
+    _TEMP_RESULTS[result_id] = result_data
     return redirect(url_for('processing', result_id=result_id))
 
 @app.route('/sample/<samplefoodname>')
 def predictsample(samplefoodname):
-    # Using posix paths for images for compatibility in HTML, joining safely for filesystem
-    imagefile = os.path.join(app.root_path, 'static', 'images', str(samplefoodname) + ".jpg")
+    image_path = os.path.join(app.root_path, 'static', 'images', str(samplefoodname) + ".jpg")
     img = "images/" + str(samplefoodname) + ".jpg"
-    title, ingredients, recipe = output(imagefile)
-    
+
+    # Use hybrid predictor (local model + optional Gemini fallback)
+    result_data = hybrid_predict(image_path, img)
+
     result_id = str(uuid.uuid4())
-    _TEMP_RESULTS[result_id] = {
-        'title': title,
-        'ingredients': ingredients,
-        'recipe': recipe,
-        'img': img
-    }
+    _TEMP_RESULTS[result_id] = result_data
     return redirect(url_for('processing', result_id=result_id))
 
 @app.route('/processing')
@@ -72,4 +65,4 @@ def result():
     data = _TEMP_RESULTS.get(result_id)
     if not data:
         return redirect(url_for('generate'))
-    return render_template('result.html', **data)
+    return render_template('result.html', result_id=result_id, **data)

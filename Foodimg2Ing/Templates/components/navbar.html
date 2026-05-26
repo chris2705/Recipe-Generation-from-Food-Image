@@ -11,12 +11,58 @@
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a>
                 </li>
+
+                {% if current_user.is_authenticated %}
+                <!-- Logged-in user navigation -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'recipe_book.my_recipes' %}active{% endif %}" href="{{ url_for('recipe_book.my_recipes') }}">
+                        <i class="fas fa-book-open me-1"></i>Recipe Book
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="avatar-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width:28px;height:28px;font-size:0.75rem;font-weight:700;">
+                            {{ current_user.name[0]|upper }}
+                        </span>
+                        {{ current_user.name.split(' ')[0] }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                        <li>
+                            <a class="dropdown-item py-2" href="{{ url_for('auth.profile') }}">
+                                <i class="fas fa-user me-2 text-primary"></i>Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2" href="{{ url_for('recipe_book.my_recipes') }}">
+                                <i class="fas fa-book-open me-2 text-primary"></i>My Recipe Book
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {% else %}
+                <!-- Guest navigation -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Register</a>
                 </li>
                 <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
                     <a class="btn btn-primary px-4 rounded-pill fw-semibold" href="{{ url_for('generate') }}">Get Started</a>
                 </li>
+                {% endif %}
             </ul>
         </div>
     </div>

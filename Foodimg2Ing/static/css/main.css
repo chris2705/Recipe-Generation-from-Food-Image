@@ -84,3 +84,85 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
     font-family: var(--font-heading);
     letter-spacing: -0.5px;
 }
+
+/* Navbar Avatar */
+.avatar-sm {
+    font-family: var(--font-heading);
+    line-height: 1;
+}
+
+/* Flash Messages */
+.alert {
+    animation: slideInDown 0.4s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Save Recipe Button */
+.btn-save-recipe {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    border: none;
+    color: #fff;
+    font-size: 1.1rem;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+}
+
+.btn-save-recipe:hover {
+    background: linear-gradient(135deg, #ff5252, #e74c6f);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.35) !important;
+}
+
+.btn-save-recipe:active {
+    transform: translateY(0);
+}
+
+.btn-saved {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    border: none !important;
+    color: #fff !important;
+    cursor: default;
+}
+
+.btn-saved:hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    color: #fff !important;
+    transform: none;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.25) !important;
+}
+
+.save-recipe-card {
+    border: 2px dashed #e9ecef !important;
+    transition: border-color 0.3s ease;
+}
+
+.save-recipe-card:hover {
+    border-color: var(--primary-color) !important;
+}
+
+/* Dropdown menu animation */
+.dropdown-menu {
+    animation: fadeInDropdown 0.2s ease-out;
+}
+
+@keyframes fadeInDropdown {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

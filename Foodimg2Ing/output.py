@@ -83,6 +83,8 @@ def output(uploadedfile):
     title=[]
     ingredients=[]
     recipe=[]
+    confidence_scores = []
+    validity_info = []
     for i in range(numgens):
         with torch.no_grad():
             outputs = model.sample(image_tensor, greedy=greedy[i], 
@@ -92,6 +94,39 @@ def output(uploadedfile):
         recipe_ids = outputs['recipe_ids'].cpu().numpy()
                 
         outs, valid = prepare_output(recipe_ids[0], ingr_ids[0], ingrs_vocab, vocab)
+
+        # --- Confidence Scoring ---
+        # Extract real probabilities from model outputs
+        ingr_probs_tensor = outputs.get('ingr_probs')
+        recipe_probs_tensor = outputs.get('recipe_probs')
+
+        # 1. Ingredient probability: mean of max softmax values across predicted tokens
+        ingr_confidence = 0.5  # default if unavailable
+        if ingr_probs_tensor is not None:
+            try:
+                ingr_softmax = torch.nn.functional.softmax(ingr_probs_tensor, dim=-1)
+                max_probs, _ = ingr_softmax.max(dim=-1)  # max probability at each position
+                # Only consider non-padding positions
+                mask = (torch.tensor(ingr_ids) != (len(ingrs_vocab) - 1)).float()
+                if mask.sum() > 0:
+                    ingr_confidence = float((max_probs.cpu().squeeze() * mask).sum() / mask.sum())
+                ingr_confidence = min(max(ingr_confidence, 0.0), 1.0)
+            except Exception:
+                ingr_confidence = 0.5
+
+        # 2. Diversity score from prepare_output (already computed)
+        diversity_score = valid.get('score', 0.5)
+
+        # 3. Validity bonus
+        validity_bonus = 1.0 if valid['is_valid'] else 0.0
+
+        # Combined confidence: weighted average
+        confidence = (0.5 * ingr_confidence) + (0.3 * diversity_score) + (0.2 * validity_bonus)
+        confidence = round(min(max(confidence, 0.0), 1.0), 4)
+
+        confidence_scores.append(confidence)
+        validity_info.append(valid)
+        # --- End Confidence Scoring ---
             
         if valid['is_valid'] or show_anyways:
                 
@@ -105,5 +140,14 @@ def output(uploadedfile):
         else:
             title.append("Not a valid recipe!")
             recipe.append("Reason: "+valid['reason'])
+            ingredients.append([])
+
+    # Return the best confidence (from the greedy generation, index 0)
+    best_confidence = confidence_scores[0] if confidence_scores else 0.5
+    metadata = {
+        'confidence_scores': confidence_scores,
+        'validity_info': validity_info,
+    }
             
-    return title,ingredients,recipe
+    return title, ingredients, recipe, best_confidence, metadata
+

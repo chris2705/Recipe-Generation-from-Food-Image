@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.food_name|title }} | My Recipe Book{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_book.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <div class="mb-4">
+        <a href="{{ url_for('recipe_book.my_recipes') }}" class="text-decoration-none text-secondary hover-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Recipe Book
+        </a>
+    </div>
+
+    <div class="row g-5">
+        <!-- Left Col: Image & Info -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 position-sticky top-0">
+                <div class="image-wrapper position-relative">
+                    {% if recipe.image_path %}
+                    <img src="{{ url_for('static', filename=recipe.image_path) }}" 
+                         alt="{{ recipe.food_name }}" class="img-fluid w-100 object-fit-cover" style="max-height: 400px;">
+                    {% else %}
+                    <div class="bg-light w-100 d-flex align-items-center justify-content-center text-muted" style="height: 300px;">
+                        <i class="fas fa-image fs-1"></i>
+                    </div>
+                    {% endif %}
+                    <div class="position-absolute bottom-0 start-0 w-100 p-3 bg-gradient-dark text-white">
+                        <span class="badge bg-primary mb-1">
+                            <i class="fas fa-bookmark me-1"></i>Saved
+                        </span>
+                        <h4 class="mb-0 fw-bold text-capitalize">{{ recipe.food_name }}</h4>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 bg-white">
+                    <!-- Source -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-uppercase text-secondary small mb-2 font-outfit">Prediction Source</h6>
+                        {% if recipe.prediction_source and 'Gemini' in recipe.prediction_source %}
+                        <span class="badge bg-info text-dark px-3 py-2 rounded-pill shadow-sm">
+                            <i class="fas fa-robot me-1"></i> {{ recipe.prediction_source }}
+                        </span>
+                        {% else %}
+                        <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm">
+                            <i class="fas fa-check-circle me-1"></i> {{ recipe.prediction_source or 'AI Model' }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Confidence -->
+                    {% if recipe.confidence %}
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-uppercase text-secondary small mb-2 font-outfit">Model Confidence</h6>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 10px; border-radius: 5px;">
+                                {% set conf_pct = (recipe.confidence * 100)|round|int %}
+                                <div class="progress-bar {% if recipe.confidence >= 0.7 %}bg-success{% elif recipe.confidence >= 0.4 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                     role="progressbar" style="width: {{ conf_pct }}%;"></div>
+                            </div>
+                            <span class="fw-bold small text-dark">{{ conf_pct }}%</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-3">
+
+                    <!-- Meta Info -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 border">
+                                <i class="fas fa-calendar-alt text-info mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Saved On</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">{{ recipe.created_at.strftime('%b %d, %Y') }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 border">
+                                <i class="fas fa-clock text-info mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Cooking Time</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">{{ recipe.cooking_time or '—' }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete Button -->
+                    <form method="POST" action="{{ url_for('recipe_book.delete_recipe', recipe_id=recipe.id) }}" 
+                          onsubmit="return confirm('Are you sure you want to remove this recipe from your book?');">
+                        <button type="submit" class="btn btn-outline-danger w-100 rounded-pill fw-semibold mt-2">
+                            <i class="fas fa-trash-alt me-2"></i>Remove from Recipe Book
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Col: Ingredients & Instructions -->
+        <div class="col-lg-8">
+            <!-- Ingredients -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold font-outfit mb-0">
+                            <i class="fas fa-shopping-basket text-primary me-2"></i> Ingredients
+                        </h3>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="window.print()">
+                            <i class="fas fa-print"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="ingredients-container d-flex flex-wrap gap-2">
+                        {% for item in recipe.get_ingredients() %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-2 rounded-pill shadow-sm">
+                            <i class="fas fa-check-circle me-1 small"></i> {{ item }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cooking Instructions -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <h3 class="fw-bold font-outfit mb-4">
+                        <i class="fas fa-list-ol text-primary me-2"></i> Cooking Instructions
+                    </h3>
+                    
+                    <div class="recipe-steps">
+                        {% for step in recipe.get_recipe_steps() %}
+                        <div class="step-card bg-light rounded-4 p-4 mb-3 position-relative border shadow-sm transition-all hover-lift-sm">
+                            <div class="position-absolute top-0 start-0 translate-middle ms-4 mt-4 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow" 
+                                 style="width: 35px; height: 35px; font-weight: bold;">
+                                {{ loop.index }}
+                            </div>
+                            <div class="ms-4 ps-2">
+                                <p class="mb-0 text-dark fs-5">{{ step }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

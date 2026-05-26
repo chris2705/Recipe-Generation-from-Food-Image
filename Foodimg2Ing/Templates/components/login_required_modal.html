@@ -1,0 +1,33 @@
+<!-- Login Required Modal -->
+<div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Header with gradient -->
+            <div class="modal-header border-0 text-white py-4" style="background: linear-gradient(135deg, var(--primary-color), #ff9a9e);">
+                <div class="w-100 text-center">
+                    <div class="mb-2"><i class="fas fa-lock fs-1 opacity-75"></i></div>
+                    <h5 class="modal-title fw-bold font-outfit" id="loginRequiredModalLabel">Login Required</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center px-4 py-4">
+                <p class="text-secondary mb-4 fs-6">
+                    Create a free account to save recipes and build your personal recipe book.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg rounded-pill fw-semibold shadow-sm">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg rounded-pill fw-semibold">
+                        <i class="fas fa-user-plus me-2"></i>Register
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">
+                    Continue as Guest
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

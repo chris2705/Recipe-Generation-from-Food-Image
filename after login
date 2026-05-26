@@ -1,0 +1,138 @@
+# Walkthrough: User Accounts + Recipe Book Feature
+
+## Summary
+
+Implemented a full user authentication system and personal recipe book for the AI Recipe Generator Flask app. Guest users can continue using all recipe generation features without an account. Saving recipes requires authentication.
+
+## Files Created (10 files)
+
+### Backend
+| File | Purpose |
+|---|---|
+| [models.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/models.py) | `User` and `SavedRecipe` SQLAlchemy models with password hashing, JSON serialization, and duplicate prevention |
+| [auth.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/auth.py) | Auth blueprint: `/register`, `/login`, `/logout`, `/profile` routes with validation |
+| [recipe_book.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/recipe_book.py) | Recipe book blueprint: AJAX save, view, delete, duplicate-check endpoints |
+
+### Templates
+| File | Purpose |
+|---|---|
+| [login.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/login.html) | Login form with email/password, remember-me, password toggle |
+| [register.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/register.html) | Registration form with password strength indicator and client-side validation |
+| [profile.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/profile.html) | User profile with initials avatar, stats, and account details |
+| [recipe_book.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/recipe_book.html) | Recipe book grid with cards, delete, and empty state |
+| [recipe_detail.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/recipe_detail.html) | Full saved recipe view (mirrors result.html layout) |
+| [login_required_modal.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/components/login_required_modal.html) | Modal shown when guests try to save |
+
+### Styles
+| File | Purpose |
+|---|---|
+| [auth.css](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/css/auth.css) | Login/register page styles |
+| [recipe_book.css](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/css/recipe_book.css) | Recipe book card grid and empty state styles |
+| [profile.css](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/css/profile.css) | Profile gradient header and avatar styles |
+
+---
+
+## Files Modified (8 files)
+
+| File | Changes |
+|---|---|
+| [__init__.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/__init__.py) | Added SQLAlchemy, Flask-Login, blueprint registration, DB table creation |
+| [routes.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/routes.py) | Pass `result_id` to result template |
+| [base.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/base.html) | Global flash message display |
+| [navbar.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/components/navbar.html) | Conditional guest vs logged-in navigation with profile dropdown |
+| [footer.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/components/footer.html) | Removed "User Accounts" from upcoming, added Recipe Book link |
+| [landing.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/landing.html) | Added Recipe Book feature card, updated upcoming features |
+| [result.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/result.html) | Added "Save To Recipe Book" button with AJAX + login modal |
+| [main.css](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/css/main.css) | Save button styles, flash animations, dropdown animations |
+| [requirements.txt](file:///f:/Projects/Recipe-Generation-from-Food-Image/requirements.txt) | Added `flask-sqlalchemy` and `flask-login` |
+| [.env](file:///f:/Projects/Recipe-Generation-from-Food-Image/.env) | Added `SECRET_KEY` and `DATABASE_URL` |
+
+---
+
+## Database Schema
+
+```
+User
+├── id (PK, Integer)
+├── name (String 100)
+├── email (String 120, unique, indexed)
+├── password_hash (String 256)
+└── created_at (DateTime)
+
+SavedRecipe
+├── id (PK, Integer)
+├── user_id (FK → user.id, indexed)
+├── food_name (String 200)
+├── ingredients (Text, JSON)
+├── recipe_steps (Text, JSON)
+├── image_path (String 500)
+├── prediction_source (String 100)
+├── confidence (Float)
+├── cooking_time (String 50)
+├── servings (String 50)
+├── created_at (DateTime)
+└── UNIQUE(user_id, food_name, image_path)
+```
+
+---
+
+## Route Map
+
+| Route | Method | Auth | Description |
+|---|---|---|---|
+| `/` | GET | No | Landing page |
+| `/about` | GET | No | About page |
+| `/generate` | GET, POST | No | Upload + process |
+| `/demo` | GET | No | Demo recipes |
+| `/sample/<name>` | GET | No | Sample prediction |
+| `/processing` | GET | No | Processing animation |
+| `/result` | GET | No | Recipe result |
+| `/register` | GET, POST | No | Registration |
+| `/login` | GET, POST | No | Login |
+| `/logout` | GET | Yes | Logout |
+| `/profile` | GET | Yes | User profile |
+| `/recipe-book` | GET | Yes | Saved recipes |
+| `/recipe-book/save` | POST | Yes | Save (AJAX) |
+| `/recipe-book/<id>` | GET | Yes | View saved recipe |
+| `/recipe-book/<id>/delete` | POST | Yes | Delete recipe |
+| `/api/check-saved` | POST | Yes | Check duplicate (AJAX) |
+
+---
+
+## Verification Results
+
+All 16 automated checks passed:
+
+```
+[1/5] Testing imports...           OK
+[2/5] Checking configuration...    OK (SECRET_KEY, DB URI)
+[3/5] Testing models...            OK (user, saved_recipe)
+[4/5] Testing database...          OK (tables created)
+[5/5] Testing routes...
+  GET  /                           200 OK
+  GET  /about                      200 OK
+  GET  /generate                   200 OK
+  GET  /demo                       200 OK
+  GET  /login                      200 OK
+  GET  /register                   200 OK
+  GET  /recipe-book (guest)        302 → login
+  GET  /profile (guest)            302 → login
+  POST /register                   302 (success)
+  POST /login                      302 (success)
+  GET  /recipe-book (logged in)    200 OK
+  GET  /profile (logged in)        200 OK
+  POST /recipe-book/save           201 (saved)
+  POST /recipe-book/save (dup)     409 (duplicate blocked)
+  GET  /logout                     302 (redirected)
+  POST /recipe-book/save (guest)   401 (login_required)
+```
+
+---
+
+## Key Design Decisions
+
+1. **AJAX save**: The save button uses `fetch()` instead of form POST — this enables the login-required modal to appear without page reload
+2. **Duplicate prevention**: Unique constraint `(user_id, food_name, image_path)` + AJAX duplicate check on page load
+3. **Global flash messages**: Moved from per-page to `base.html` so auth redirects always show their messages
+4. **JSON serialization**: Ingredients and recipe steps stored as JSON text for schema flexibility
+5. **SQLite**: Zero-config file database at `Foodimg2Ing/data/recipe_generator.db` — easy to migrate to PostgreSQL later by changing `DATABASE_URL`

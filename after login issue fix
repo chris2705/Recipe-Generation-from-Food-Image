@@ -1,0 +1,104 @@
+# Walkthrough: User Accounts, Recipe Book, and Auto-Save Recovery
+
+This document summarizes the implementation of the core authentication, Recipe Book feature, and the UX-focused **Post-Login Recipe Recovery & Auto-Save Flow**.
+
+---
+
+## 🚀 Post-Login Auto-Save Flow (UX Improvement)
+
+Guest users can generate a recipe, click "Save To Recipe Book", and register or log in without losing their generated recipe. The application automatically saves the recipe to their account and redirects them back to the recipe page with success/status banners.
+
+### Session Architecture & Lifecycle
+
+When a guest clicks **Save To Recipe Book**:
+1. An AJAX POST request is made to `/recipe-book/save` containing all recipe parameters and a `next_url` parameter representing the current result page URL.
+2. The server captures this data and stores:
+   - `session['pending_recipe']` (dictionary with recipe details, image path, source, and confidence).
+   - `session['post_login_action'] = 'save_recipe'`.
+   - `session['next_url'] = data['next_url']` (e.g. `/result?result_id=...`).
+3. The server returns status `401 Unauthorized` with `{'login_required': True}`.
+4. The frontend displays the custom registration/login modal.
+
+Upon successful Login or Registration:
+1. The server checks if `session.get('post_login_action') == 'save_recipe'`.
+2. If true, the system retrieves the `pending_recipe` from session.
+3. A duplicate prevention check is run in the database.
+   - If not duplicated: The recipe is saved. `session['auto_saved_banner'] = True` is set. A success flash message is shown.
+   - If duplicated: No entry is created. `session['auto_saved_banner_duplicate'] = True` is set. An info flash message is shown.
+4. The pending session variables (`pending_recipe`, `post_login_action`, `next_url`) are popped and cleaned up to prevent duplicate triggers.
+5. The user is redirected back to the saved `next_url` (the exact recipe result page).
+6. The recipe result page retrieves the banner flag from the session and renders a beautiful alert explaining that the recipe has been auto-saved.
+
+---
+
+## 🛠️ Files Modified & Created
+
+### Backend & Core
+- **[recipe_book.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/recipe_book.py)**: Modified `/recipe-book/save` to capture and store pending recipes in the session for unauthenticated guests.
+- **[auth.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/auth.py)**: Added `handle_post_login_actions(user)` helper. Auto-logs users in on successful registration and handles the post-login auto-save/recovery flow for both login and register.
+- **[models.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/models.py)**: Holds the `User` and `SavedRecipe` database tables.
+
+### Frontend & UI
+- **[result.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/result.html)**:
+  - Updates save recipe AJAX payload to include `next_url` (the current page URL).
+  - Renders top-level banners showing whether the recipe was auto-saved or if it was already saved in the user's Recipe Book.
+
+---
+
+## ✅ Verification Results
+
+All automated checks passed, verifying that guest actions are persisted in the session, automatically saved to the database on authentication (both registration and login), cleaned up, and correctly redirected.
+
+```
+==================================================
+AI Recipe Generator - Feature Verification
+==================================================
+
+[1/5] Testing imports...
+  OK - App and DB initialized
+
+[2/5] Checking configuration...
+  OK - SECRET_KEY set: True
+  OK - DB URI: sqlite:///F:\Projects\Recipe-Generation-from-Food-Image\Foodimg2Ing\data\recipe_generator.db
+
+[3/5] Testing models...
+  OK - User table: user
+  OK - SavedRecipe table: saved_recipe
+
+[4/5] Testing database...
+  OK - Tables created: ['saved_recipe', 'user']
+
+[5/5] Testing routes...
+  OK - GET / -> 200
+  OK - GET /about -> 200
+  OK - GET /generate -> 200
+  OK - GET /demo -> 200
+  OK - GET /login -> 200
+  OK - GET /register -> 200
+  OK - GET /recipe-book -> 302 (redirect to login)
+  OK - GET /profile -> 302 (redirect to login)
+  OK - POST /register -> 302
+  OK - POST /login -> 302
+  OK - GET /recipe-book (logged in) -> 200
+  OK - GET /profile (logged in) -> 200
+  OK - POST /recipe-book/save -> 201 (Recipe saved successfully!)
+  OK - POST /recipe-book/save (duplicate) -> 409 (Recipe already exists in your recipe book.)
+  OK - GET /logout -> 302
+  OK - POST /recipe-book/save (guest prep) -> 401 (login_required)
+  OK - Session has pending recipe: True
+    Pending recipe food name: Pending Pizza
+    Pending recipe next_url: /result?result_id=test-123
+  OK - POST /login with pending recipe -> Redirected to: /result?result_id=test-123
+  OK - Pending recipe auto-saved to DB: True
+    Saved recipe image path: images/pizza.jpg
+  OK - Session cleaned up after auto-save: True
+  OK - POST /register with pending recipe -> Redirected to: /result?result_id=burger-123
+  OK - Register pending recipe auto-saved to DB: True
+  OK - Register session cleaned up: True
+
+  OK - Test data cleaned up
+
+==================================================
+ALL CHECKS PASSED!
+==================================================
+```

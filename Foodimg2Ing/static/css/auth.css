@@ -1,0 +1,76 @@
+/* Auth Pages Styles (Login & Register) */
+
+.auth-section {
+    background: radial-gradient(circle at top right, rgba(255, 107, 107, 0.04), transparent 50%),
+                radial-gradient(circle at bottom left, rgba(32, 201, 151, 0.04), transparent 50%);
+    min-height: 80vh;
+}
+
+.auth-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-subtle), #fff);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.15);
+}
+
+/* Form Controls */
+.auth-section .form-control {
+    border: 2px solid #e9ecef;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-section .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 107, 0.15);
+}
+
+.auth-section .form-control::placeholder {
+    color: #bbb;
+}
+
+/* Password Strength Bars */
+.strength-bars {
+    height: 5px;
+}
+
+.strength-bar {
+    flex: 1;
+    height: 100%;
+    background-color: #e5e7eb;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+/* Input group button */
+.auth-section .input-group .btn {
+    border-color: #e9ecef;
+    border-width: 2px;
+    color: #999;
+}
+
+.auth-section .input-group .btn:hover {
+    background-color: var(--primary-subtle);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Form check */
+.auth-section .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Card hover */
+.auth-section .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-section .card:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+}

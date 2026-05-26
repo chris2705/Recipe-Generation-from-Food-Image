@@ -8,3 +8,7 @@ Pillow
 matplotlib
 numpy
 typing-extensions
+google-generativeai
+python-dotenv
+flask-sqlalchemy
+flask-login

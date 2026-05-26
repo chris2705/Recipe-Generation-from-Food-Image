@@ -9,6 +9,9 @@ food/
 # Uploaded User Images
 Foodimg2Ing/static/images/uploads/
 
+# Prediction Logs
+logs/
+
 # Environments
 .env
 .venv

@@ -1,0 +1,56 @@
+/* Recipe Book & Recipe Detail Styles */
+
+/* Recipe Cards */
+.recipe-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.recipe-card:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+}
+
+.recipe-card .card-img-top {
+    transition: transform 0.4s ease;
+}
+
+.recipe-card:hover .card-img-top {
+    transform: scale(1.03);
+}
+
+.recipe-card-image {
+    overflow: hidden;
+}
+
+/* Empty State */
+.empty-icon-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-subtle), #fff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.12);
+    animation: floatAnimation 3s ease-in-out infinite;
+}
+
+@keyframes floatAnimation {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Delete button animation */
+.recipe-card .btn-outline-danger {
+    transition: all 0.3s ease;
+}
+
+.recipe-card .btn-outline-danger:hover {
+    transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 575.98px) {
+    .recipe-card .card-body {
+        padding: 1rem !important;
+    }
+}

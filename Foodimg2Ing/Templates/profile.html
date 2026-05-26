@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile | AI Recipe Generator{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container py-4">
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <!-- Profile Header Card -->
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
+                    <div class="profile-header text-white text-center py-5 position-relative">
+                        <div class="profile-avatar mx-auto mb-3">
+                            <span class="avatar-initials">{{ current_user.name[0]|upper }}{{ current_user.name.split(' ')[-1][0]|upper if ' ' in current_user.name else '' }}</span>
+                        </div>
+                        <h2 class="fw-bold font-outfit mb-1">{{ current_user.name }}</h2>
+                        <p class="opacity-75 mb-0">
+                            <i class="fas fa-envelope me-1"></i>{{ current_user.email }}
+                        </p>
+                    </div>
+                    <div class="card-body p-4 p-md-5">
+                        <div class="row g-4 text-center">
+                            <div class="col-4">
+                                <div class="stat-card p-3 rounded-3 bg-light h-100">
+                                    <div class="stat-number text-primary fw-bold fs-2 font-outfit">{{ current_user.recipe_count }}</div>
+                                    <div class="text-muted small fw-semibold text-uppercase">Saved Recipes</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-card p-3 rounded-3 bg-light h-100">
+                                    <div class="stat-number text-primary fw-bold fs-2 font-outfit">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    </div>
+                                    <div class="text-muted small fw-semibold text-uppercase">Verified</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-card p-3 rounded-3 bg-light h-100">
+                                    <div class="stat-number text-primary fw-bold fs-2 font-outfit">Free</div>
+                                    <div class="text-muted small fw-semibold text-uppercase">Plan</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Details Card -->
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h4 class="fw-bold font-outfit mb-4">
+                            <i class="fas fa-id-card text-primary me-2"></i>Account Details
+                        </h4>
+                        
+                        <div class="row g-4">
+                            <div class="col-sm-6">
+                                <div class="detail-item">
+                                    <div class="text-muted small text-uppercase fw-semibold mb-1">Full Name</div>
+                                    <div class="fs-5 fw-medium">{{ current_user.name }}</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="detail-item">
+                                    <div class="text-muted small text-uppercase fw-semibold mb-1">Email Address</div>
+                                    <div class="fs-5 fw-medium">{{ current_user.email }}</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="detail-item">
+                                    <div class="text-muted small text-uppercase fw-semibold mb-1">Member Since</div>
+                                    <div class="fs-5 fw-medium">{{ current_user.created_at.strftime('%B %d, %Y') }}</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="detail-item">
+                                    <div class="text-muted small text-uppercase fw-semibold mb-1">Saved Recipes</div>
+                                    <div class="fs-5 fw-medium">{{ current_user.recipe_count }} recipe{{ 's' if current_user.recipe_count != 1 else '' }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="{{ url_for('recipe_book.my_recipes') }}" class="btn btn-primary rounded-pill px-4 fw-semibold hover-lift">
+                                <i class="fas fa-book-open me-2"></i>My Recipe Book
+                            </a>
+                            <a href="{{ url_for('generate') }}" class="btn btn-outline-primary rounded-pill px-4 fw-semibold hover-lift">
+                                <i class="fas fa-magic me-2"></i>Generate Recipe
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

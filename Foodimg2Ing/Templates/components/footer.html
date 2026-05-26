@@ -13,14 +13,17 @@
                     <li class="mb-2"><a href="{{ url_for('home') }}" class="text-secondary text-decoration-none hover-primary">Home</a></li>
                     <li class="mb-2"><a href="{{ url_for('generate') }}" class="text-secondary text-decoration-none hover-primary">Generate Recipe</a></li>
                     <li class="mb-2"><a href="{{ url_for('about') }}" class="text-secondary text-decoration-none hover-primary">About Us</a></li>
+                    {% if current_user.is_authenticated %}
+                    <li class="mb-2"><a href="{{ url_for('recipe_book.my_recipes') }}" class="text-secondary text-decoration-none hover-primary">Recipe Book</a></li>
+                    {% endif %}
                 </ul>
             </div>
             <div class="col-lg-3 col-md-6">
                 <h6 class="text-uppercase fw-bold mb-3">Upcoming Features</h6>
                 <ul class="list-unstyled mb-0 text-secondary">
-                    <li class="mb-2"><i class="fas fa-lock me-2 small"></i> User Accounts</li>
                     <li class="mb-2"><i class="fas fa-chart-pie me-2 small"></i> Nutrition Analysis</li>
                     <li class="mb-2"><i class="fas fa-robot me-2 small"></i> Gemini AI Integration</li>
+                    <li class="mb-2"><i class="fas fa-calendar-alt me-2 small"></i> Meal Planning</li>
                 </ul>
             </div>
             <div class="col-lg-3 col-md-6">
