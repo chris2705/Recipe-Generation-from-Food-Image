@@ -17,6 +17,26 @@ logger = logging.getLogger(__name__)
 # In-memory cache: image_hash -> gemini_result
 _gemini_cache = {}
 
+# ─── Startup Validation ────────────────────────────────────────────
+def _log_startup_status():
+    """Log Gemini service status at import time."""
+    api_key = os.environ.get('GEMINI_API_KEY', '').strip()
+    has_key = bool(api_key) and api_key != 'YOUR_KEY_HERE'
+    use_fallback = os.environ.get('USE_GEMINI_FALLBACK', 'True').lower() == 'true'
+    threshold = os.environ.get('CONFIDENCE_THRESHOLD', '0.50')
+    logger.info("=" * 60)
+    logger.info("[GEMINI SERVICE] Startup Status:")
+    logger.info(f"  Gemini API Key Loaded: {has_key}")
+    logger.info(f"  Gemini Fallback Enabled: {use_fallback}")
+    logger.info(f"  Confidence Threshold: {threshold}")
+    if has_key:
+        logger.info(f"  API Key (last 4): ...{api_key[-4:]}")
+    else:
+        logger.warning("  ⚠️  No valid Gemini API key found!")
+    logger.info("=" * 60)
+
+_log_startup_status()
+
 
 def _get_image_hash(image_path: str) -> str:
     """Compute MD5 hash of an image file for caching."""
@@ -142,10 +162,10 @@ def analyze_image(image_path: str) -> dict | None:
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse Gemini JSON response: {e}")
         return None
-    except ImportError:
-        logger.error("google-genai package not installed. Run: pip install google-generativeai")
+    except ImportError as e:
+        logger.error(f"google-genai package not installed. Run: pip install google-genai. Error: {e}")
         return None
     except Exception as e:
-        logger.error(f"Gemini API call failed: {type(e).__name__}: {e}")
+        logger.error(f"Gemini API call failed: {type(e).__name__}: {e}", exc_info=True)
         return None
 

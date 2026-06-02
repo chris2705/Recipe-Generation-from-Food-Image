@@ -1,0 +1,436 @@
+/* ============================================================
+   nutrition.css — AI Recipe Generator Nutrition Analysis UI
+   Premium card-based nutrition dashboard with animations.
+   ============================================================ */
+
+/* ── CSS Variables ──────────────────────────────────────────── */
+:root {
+  --nut-calories:   #FF6B35;
+  --nut-protein:    #4CAF82;
+  --nut-carbs:      #5B8DEF;
+  --nut-fat:        #F7B731;
+  --nut-fiber:      #A8D8A8;
+  --nut-sugar:      #FF8FAB;
+  --nut-sodium:     #B0BEC5;
+  --nut-health-bg:  #0f2027;
+  --nut-card-bg:    #ffffff;
+  --nut-card-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --nut-radius:     16px;
+  --nut-inner-radius: 12px;
+}
+
+/* ── Section Header ─────────────────────────────────────────── */
+.nutrition-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.nutrition-section-header h3 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.4rem;
+  background: linear-gradient(135deg, #FF6B35, #F7B731);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nutrition-icon-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #FF6B35, #F7B731);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35);
+  flex-shrink: 0;
+}
+
+/* ── Macro Cards Grid ───────────────────────────────────────── */
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 1200px) {
+  .nutrition-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 768px) {
+  .nutrition-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 400px) {
+  .nutrition-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+
+.macro-card {
+  background: var(--nut-card-bg);
+  border-radius: var(--nut-inner-radius);
+  padding: 18px 14px;
+  text-align: center;
+  box-shadow: var(--nut-card-shadow);
+  border: 1px solid rgba(0,0,0,0.06);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: fadeInUp 0.5s ease both;
+}
+
+.macro-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.14);
+}
+
+/* Staggered animations */
+.macro-card:nth-child(1) { animation-delay: 0.05s; }
+.macro-card:nth-child(2) { animation-delay: 0.10s; }
+.macro-card:nth-child(3) { animation-delay: 0.15s; }
+.macro-card:nth-child(4) { animation-delay: 0.20s; }
+.macro-card:nth-child(5) { animation-delay: 0.25s; }
+.macro-card:nth-child(6) { animation-delay: 0.30s; }
+.macro-card:nth-child(7) { animation-delay: 0.35s; }
+
+/* Colour accent bar on top */
+.macro-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: var(--nut-inner-radius) var(--nut-inner-radius) 0 0;
+}
+.macro-card.calories::before { background: var(--nut-calories); }
+.macro-card.protein::before  { background: var(--nut-protein); }
+.macro-card.carbs::before    { background: var(--nut-carbs); }
+.macro-card.fat::before      { background: var(--nut-fat); }
+.macro-card.fiber::before    { background: var(--nut-fiber); }
+.macro-card.sugar::before    { background: var(--nut-sugar); }
+.macro-card.sodium::before   { background: var(--nut-sodium); }
+
+.macro-emoji {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+
+.macro-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 2px;
+  color: #1a1a2e;
+}
+
+.macro-value.calories-val { color: var(--nut-calories); }
+.macro-value.protein-val  { color: var(--nut-protein); }
+.macro-value.carbs-val    { color: var(--nut-carbs); }
+.macro-value.fat-val      { color: var(--nut-fat); }
+.macro-value.fiber-val    { color: #66a66a; }
+.macro-value.sugar-val    { color: var(--nut-sugar); }
+.macro-value.sodium-val   { color: #78909c; }
+
+.macro-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+}
+
+.macro-unit {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+/* ── Health Score + Diet Tags Row ───────────────────────────── */
+.nutrition-summary-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* Health Score Card */
+.health-score-card {
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  border-radius: var(--nut-inner-radius);
+  padding: 20px 24px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 0 0 auto;
+  min-width: 220px;
+  box-shadow: 0 8px 24px rgba(15,32,39,0.25);
+  animation: fadeInUp 0.5s ease 0.1s both;
+}
+
+.health-score-ring-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.health-score-ring-wrap svg {
+  width: 80px;
+  height: 80px;
+  transform: rotate(-90deg);
+}
+
+.health-score-ring-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.15);
+  stroke-width: 8;
+}
+
+.health-score-ring-fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* colour the ring based on score class */
+.score-excellent .health-score-ring-fill { stroke: #4ade80; }
+.score-good      .health-score-ring-fill { stroke: #60a5fa; }
+.score-fair      .health-score-ring-fill { stroke: #fbbf24; }
+.score-poor      .health-score-ring-fill { stroke: #f87171; }
+
+.health-score-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+}
+
+.health-score-info { flex: 1; }
+.health-score-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 4px;
+}
+.health-score-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.score-excellent .health-score-title { color: #4ade80; }
+.score-good      .health-score-title { color: #60a5fa; }
+.score-fair      .health-score-title { color: #fbbf24; }
+.score-poor      .health-score-title { color: #f87171; }
+
+.health-score-engine {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.4);
+}
+
+/* Diet Tags Card */
+.diet-tags-card {
+  background: var(--nut-card-bg);
+  border-radius: var(--nut-inner-radius);
+  padding: 20px;
+  flex: 1;
+  box-shadow: var(--nut-card-shadow);
+  border: 1px solid rgba(0,0,0,0.06);
+  animation: fadeInUp 0.5s ease 0.15s both;
+}
+
+.diet-tags-card-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.diet-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.diet-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+  cursor: default;
+}
+
+.diet-tag-pill:hover { transform: scale(1.04); }
+
+.diet-tag-pill.tag-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.diet-tag-pill.tag-info    { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.diet-tag-pill.tag-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.diet-tag-pill.tag-primary { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
+.diet-tag-pill.tag-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+/* ── Nutrition Label (FDA-style, toggled) ───────────────────── */
+.nutrition-label-toggle-btn {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nutrition-label-toggle-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #1e293b;
+}
+
+.nutrition-label-box {
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  background: white;
+  border: 3px solid #1a1a1a;
+  border-radius: 4px;
+  padding: 10px 14px;
+  max-width: 340px;
+  margin: 16px auto 0;
+  display: none;
+  animation: fadeInUp 0.3s ease;
+}
+.nutrition-label-box.visible { display: block; }
+
+.nl-title {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  border-bottom: 8px solid #1a1a1a;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}
+.nl-serving {
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+.nl-calories-row {
+  display: flex;
+  align-items: flex-end;
+  border-top: 4px solid #1a1a1a;
+  border-bottom: 1px solid #1a1a1a;
+  padding: 2px 0;
+  margin: 4px 0;
+}
+.nl-calories-label { font-size: 1.1rem; font-weight: 700; flex: 1; }
+.nl-calories-value { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+.nl-daily-label {
+  text-align: right;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-bottom: 1px solid #1a1a1a;
+  padding-bottom: 2px;
+  margin-bottom: 2px;
+}
+.nl-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 0.5px solid #ccc;
+  padding: 2px 0;
+  font-size: 0.85rem;
+}
+.nl-row strong { margin-right: 4px; }
+.nl-row-indent { padding-left: 16px; }
+.nl-footer {
+  font-size: 0.65rem;
+  color: #444;
+  margin-top: 6px;
+  border-top: 8px solid #1a1a1a;
+  padding-top: 4px;
+}
+
+/* ── Nutrition Summary Bar (sidebar insight boxes) ──────────── */
+.nutrition-insight-box {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease;
+}
+.nutrition-insight-box:hover { transform: translateY(-2px); }
+
+.nutrition-insight-emoji { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+.nutrition-insight-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  line-height: 1.1;
+}
+.nutrition-insight-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* ── Macro progress bars (inside label) ─────────────────────── */
+.macro-bar-wrap { margin-bottom: 10px; }
+.macro-bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #374151;
+}
+.macro-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+.macro-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.macro-bar-fill.calories { background: var(--nut-calories); }
+.macro-bar-fill.protein  { background: var(--nut-protein); }
+.macro-bar-fill.carbs    { background: var(--nut-carbs); }
+.macro-bar-fill.fat      { background: var(--nut-fat); }
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Responsive Adjustments ─────────────────────────────────── */
+@media (max-width: 576px) {
+  .nutrition-summary-row { flex-direction: column; }
+  .health-score-card { min-width: unset; width: 100%; }
+  .nutrition-grid { gap: 10px; }
+  .macro-value { font-size: 1.25rem; }
+}

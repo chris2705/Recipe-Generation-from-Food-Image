@@ -52,6 +52,7 @@ def save_recipe():
             'confidence': data.get('confidence', 0.0),
             'cooking_time': data.get('cooking_time', ''),
             'servings': data.get('servings', ''),
+            'nutrition': data.get('nutrition'),
             'timestamp': datetime.utcnow().isoformat()
         }
         session['post_login_action'] = 'save_recipe'
@@ -66,6 +67,7 @@ def save_recipe():
     confidence = data.get('confidence', 0.0)
     cooking_time = data.get('cooking_time', '')
     servings = data.get('servings', '')
+    nutrition = data.get('nutrition')  # dict or None
 
     if not food_name:
         return jsonify({'error': 'Recipe name is required.'}), 400
@@ -96,6 +98,10 @@ def save_recipe():
     recipe.set_ingredients(ingredients)
     recipe.set_recipe_steps(recipe_steps)
 
+    # Persist nutrition data if provided
+    if nutrition:
+        recipe.set_nutrition(nutrition)
+
     db.session.add(recipe)
     db.session.commit()
 
@@ -119,7 +125,8 @@ def view_recipe(recipe_id):
         flash('You do not have permission to view this recipe.', 'danger')
         return redirect(url_for('recipe_book.my_recipes'))
 
-    return render_template('recipe_detail.html', recipe=recipe)
+    return render_template('recipe_detail.html', recipe=recipe,
+                           nutrition=recipe.get_nutrition_dict())
 
 
 # ---------------------------------------------------------------------------

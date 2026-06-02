@@ -1,0 +1,314 @@
+{#
+  nutrition_card.html — Reusable Nutrition Analysis Panel
+  
+  Required context variables:
+    - nutrition: dict from NutritionService.analyze() or SavedRecipe.get_nutrition_dict()
+      Keys: calories, protein, carbs, fat, fiber, sugar, sodium, servings,
+            health_score, health_label, diet_tags (list of {tag,emoji,color}),
+            diet_tag_names, nutrition_levels, nutrition_summary, engine
+    - show_label: bool (optional, default True) — show FDA-style label toggle
+  
+  Usage:
+    {% from 'components/nutrition_card.html' import nutrition_panel %}
+    {{ nutrition_panel(nutrition) }}
+  
+  Or simple include (passes context automatically):
+    {% include 'components/nutrition_card.html' %}
+#}
+
+{% if nutrition and nutrition.get('calories') is not none %}
+
+{% set n = nutrition %}
+{% set score = n.get('health_score', 50) %}
+{% set health_label = n.get('health_label', 'Good') %}
+
+{# Determine score CSS class #}
+{% if score >= 80 %}{% set score_cls = 'score-excellent' %}
+{% elif score >= 65 %}{% set score_cls = 'score-good' %}
+{% elif score >= 45 %}{% set score_cls = 'score-fair' %}
+{% else %}{% set score_cls = 'score-poor' %}
+{% endif %}
+
+{# SVG ring maths: r=32, circumference = 2*pi*32 ≈ 201 #}
+{% set circumference = 201 %}
+{% set dash_offset = circumference - (score / 100 * circumference) %}
+
+<div class="card border-0 shadow-sm rounded-4 mt-4" id="nutrition-analysis-card">
+    <div class="card-body p-4 p-md-5">
+
+        {# ── Section Header ── #}
+        <div class="nutrition-section-header mb-4">
+            <div class="nutrition-icon-badge">🔬</div>
+            <div>
+                <h3 class="mb-0">Nutrition Analysis</h3>
+                <div class="text-muted small mt-1">
+                    {% if n.get('engine') == 'gemini' %}
+                    <i class="fas fa-robot text-info me-1"></i>Powered by Gemini AI
+                    {% else %}
+                    <i class="fas fa-flask text-warning me-1"></i>Ingredient-based estimation · {{ n.get('servings', 2) }} servings
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ── Macro Cards Grid ── #}
+        <div class="nutrition-grid">
+
+            <div class="macro-card calories">
+                <span class="macro-emoji">🔥</span>
+                <div class="macro-value calories-val" data-target="{{ n.get('calories', 0) }}">{{ n.get('calories', '—') }}</div>
+                <div class="macro-unit">kcal</div>
+                <div class="macro-label">Calories</div>
+            </div>
+
+            <div class="macro-card protein">
+                <span class="macro-emoji">💪</span>
+                <div class="macro-value protein-val">{{ n.get('protein', '—') }}</div>
+                <div class="macro-unit">grams</div>
+                <div class="macro-label">Protein</div>
+            </div>
+
+            <div class="macro-card carbs">
+                <span class="macro-emoji">🍞</span>
+                <div class="macro-value carbs-val">{{ n.get('carbs', '—') }}</div>
+                <div class="macro-unit">grams</div>
+                <div class="macro-label">Carbs</div>
+            </div>
+
+            <div class="macro-card fat">
+                <span class="macro-emoji">🥑</span>
+                <div class="macro-value fat-val">{{ n.get('fat', '—') }}</div>
+                <div class="macro-unit">grams</div>
+                <div class="macro-label">Fat</div>
+            </div>
+
+            <div class="macro-card fiber">
+                <span class="macro-emoji">🌿</span>
+                <div class="macro-value fiber-val">{{ n.get('fiber', '—') }}</div>
+                <div class="macro-unit">grams</div>
+                <div class="macro-label">Fiber</div>
+            </div>
+
+            <div class="macro-card sugar">
+                <span class="macro-emoji">🍬</span>
+                <div class="macro-value sugar-val">{{ n.get('sugar', '—') }}</div>
+                <div class="macro-unit">grams</div>
+                <div class="macro-label">Sugar</div>
+            </div>
+
+            <div class="macro-card sodium">
+                <span class="macro-emoji">🧂</span>
+                <div class="macro-value sodium-val">{{ n.get('sodium', '—') }}</div>
+                <div class="macro-unit">mg</div>
+                <div class="macro-label">Sodium</div>
+            </div>
+
+        </div>
+
+        {# ── Health Score + Diet Tags Row ── #}
+        <div class="nutrition-summary-row">
+
+            {# Health Score Ring #}
+            <div class="health-score-card {{ score_cls }}">
+                <div class="health-score-ring-wrap">
+                    <svg viewBox="0 0 80 80">
+                        <circle class="health-score-ring-bg" cx="40" cy="40" r="32"/>
+                        <circle class="health-score-ring-fill"
+                                cx="40" cy="40" r="32"
+                                stroke-dasharray="{{ circumference }}"
+                                stroke-dashoffset="{{ circumference }}"
+                                data-dashoffset="{{ dash_offset }}"
+                                id="health-ring-fill"/>
+                    </svg>
+                    <div class="health-score-center">{{ score }}</div>
+                </div>
+                <div class="health-score-info">
+                    <div class="health-score-label">Health Score</div>
+                    <div class="health-score-title">{{ health_label }}</div>
+                    <div class="health-score-engine">
+                        {% if n.get('engine') == 'gemini' %}
+                        <i class="fas fa-robot me-1"></i>Gemini Analysis
+                        {% else %}
+                        <i class="fas fa-flask me-1"></i>Estimated
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Diet Tags #}
+            {% set tags = n.get('diet_tags', []) %}
+            {% if tags %}
+            <div class="diet-tags-card flex-grow-1">
+                <div class="diet-tags-card-header">
+                    <i class="fas fa-tags me-1"></i>Diet Profile
+                </div>
+                <div class="diet-tags-wrap">
+                    {% for tag_obj in tags %}
+                    <span class="diet-tag-pill tag-{{ tag_obj.color }}">
+                        {{ tag_obj.emoji }} {{ tag_obj.tag }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif n.get('diet_tag_names') %}
+            {# Fallback: diet_tag_names only (from DB) #}
+            <div class="diet-tags-card flex-grow-1">
+                <div class="diet-tags-card-header">
+                    <i class="fas fa-tags me-1"></i>Diet Profile
+                </div>
+                <div class="diet-tags-wrap">
+                    {% for tag_name in n.get('diet_tag_names', []) %}
+                    <span class="diet-tag-pill tag-secondary">{{ tag_name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        {# ── Macro Progress Bars ── #}
+        <div class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    {% set cal_pct = [((n.get('calories', 0) / 2000) * 100)|round|int, 100]|min %}
+                    <div class="macro-bar-wrap">
+                        <div class="macro-bar-header">
+                            <span>🔥 Calories</span>
+                            <span>{{ n.get('calories', 0) }} / 2000 kcal</span>
+                        </div>
+                        <div class="macro-bar-track">
+                            <div class="macro-bar-fill calories" style="width: 0%;" data-width="{{ cal_pct }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    {% set pro_pct = [((n.get('protein', 0) / 50) * 100)|round|int, 100]|min %}
+                    <div class="macro-bar-wrap">
+                        <div class="macro-bar-header">
+                            <span>💪 Protein</span>
+                            <span>{{ n.get('protein', 0) }}g / 50g DV</span>
+                        </div>
+                        <div class="macro-bar-track">
+                            <div class="macro-bar-fill protein" style="width: 0%;" data-width="{{ pro_pct }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    {% set carb_pct = [((n.get('carbs', 0) / 275) * 100)|round|int, 100]|min %}
+                    <div class="macro-bar-wrap">
+                        <div class="macro-bar-header">
+                            <span>🍞 Carbs</span>
+                            <span>{{ n.get('carbs', 0) }}g / 275g DV</span>
+                        </div>
+                        <div class="macro-bar-track">
+                            <div class="macro-bar-fill carbs" style="width: 0%;" data-width="{{ carb_pct }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    {% set fat_pct = [((n.get('fat', 0) / 78) * 100)|round|int, 100]|min %}
+                    <div class="macro-bar-wrap">
+                        <div class="macro-bar-header">
+                            <span>🥑 Fat</span>
+                            <span>{{ n.get('fat', 0) }}g / 78g DV</span>
+                        </div>
+                        <div class="macro-bar-track">
+                            <div class="macro-bar-fill fat" style="width: 0%;" data-width="{{ fat_pct }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ── FDA Nutrition Label Toggle ── #}
+        <div class="text-center mt-2">
+            <button class="nutrition-label-toggle-btn" onclick="toggleNutritionLabel()" id="nl-toggle-btn">
+                <i class="fas fa-tag me-1"></i>View Nutrition Label
+            </button>
+
+            <div class="nutrition-label-box" id="nutrition-label-box">
+                <div class="nl-title">Nutrition Facts</div>
+                <div class="nl-serving">{{ n.get('servings', 2) }} serving{{ 's' if n.get('servings', 2) != 1 else '' }} per recipe</div>
+                <div class="nl-serving"><strong>Serving Size:</strong> 1 portion</div>
+
+                <div class="nl-calories-row">
+                    <div>
+                        <div class="nl-calories-label">Calories</div>
+                    </div>
+                    <div class="nl-calories-value">{{ n.get('calories', 0) }}</div>
+                </div>
+
+                <div class="nl-daily-label">% Daily Value*</div>
+
+                <div class="nl-row">
+                    <strong>Total Fat</strong> {{ n.get('fat', 0) }}g
+                    <span class="ms-auto">{{ [((n.get('fat', 0) / 78) * 100)|round|int, 999]|min }}%</span>
+                </div>
+                <div class="nl-row nl-row-indent">
+                    Saturated Fat <em>~{{ (n.get('fat', 0) * 0.3)|round(1) }}g</em>
+                    <span class="ms-auto">~{{ [((n.get('fat', 0) * 0.3 / 20) * 100)|round|int, 999]|min }}%</span>
+                </div>
+                <div class="nl-row">
+                    <strong>Sodium</strong> {{ n.get('sodium', 0) }}mg
+                    <span class="ms-auto">{{ [((n.get('sodium', 0) / 2300) * 100)|round|int, 999]|min }}%</span>
+                </div>
+                <div class="nl-row">
+                    <strong>Total Carbohydrate</strong> {{ n.get('carbs', 0) }}g
+                    <span class="ms-auto">{{ [((n.get('carbs', 0) / 275) * 100)|round|int, 999]|min }}%</span>
+                </div>
+                <div class="nl-row nl-row-indent">
+                    Dietary Fiber {{ n.get('fiber', 0) }}g
+                    <span class="ms-auto">{{ [((n.get('fiber', 0) / 28) * 100)|round|int, 999]|min }}%</span>
+                </div>
+                <div class="nl-row nl-row-indent">
+                    Total Sugars {{ n.get('sugar', 0) }}g
+                </div>
+                <div class="nl-row">
+                    <strong>Protein</strong> {{ n.get('protein', 0) }}g
+                </div>
+
+                <div class="nl-footer">
+                    * Percent Daily Values are based on a 2,000 calorie diet.
+                    Values are AI-estimated and may vary.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endif %}
+
+{# ── JavaScript for animations ── #}
+<script>
+(function() {
+    // Animate progress bars
+    document.querySelectorAll('.macro-bar-fill').forEach(function(bar) {
+        var target = bar.getAttribute('data-width');
+        if (target) {
+            setTimeout(function() { bar.style.width = target; }, 300);
+        }
+    });
+
+    // Animate health score ring
+    var ring = document.getElementById('health-ring-fill');
+    if (ring) {
+        var offset = parseFloat(ring.getAttribute('data-dashoffset'));
+        setTimeout(function() {
+            ring.style.strokeDashoffset = offset;
+        }, 400);
+    }
+})();
+
+function toggleNutritionLabel() {
+    var box = document.getElementById('nutrition-label-box');
+    var btn = document.getElementById('nl-toggle-btn');
+    if (!box) return;
+    box.classList.toggle('visible');
+    if (box.classList.contains('visible')) {
+        btn.innerHTML = '<i class="fas fa-times me-1"></i>Hide Nutrition Label';
+    } else {
+        btn.innerHTML = '<i class="fas fa-tag me-1"></i>View Nutrition Label';
+    }
+}
+</script>

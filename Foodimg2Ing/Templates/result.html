@@ -2,6 +2,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -66,6 +67,10 @@
                         <span class="badge bg-info text-dark px-3 py-2 rounded-pill shadow-sm">
                             <i class="fas fa-robot me-1"></i> {{ source }}
                         </span>
+                        {% elif source == 'Gemini Fallback' %}
+                        <span class="badge px-3 py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;">
+                            <i class="fas fa-sync-alt me-1"></i> {{ source }}
+                        </span>
                         {% elif 'Hybrid' in source or 'Second Opinion' in source %}
                         <span class="badge px-3 py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, var(--primary-color), #667eea);">
                             <i class="fas fa-brain me-1"></i> {{ source }}
@@ -120,12 +125,15 @@
                         </div>
                         <div class="col-6">
                             <div class="insight-box bg-light rounded-3 p-3 text-center h-100 position-relative border">
-                                {% if servings is defined and servings != 'Coming Soon' %}
+                                {% if nutrition and nutrition.get('servings') %}
+                                <i class="fas fa-users text-success mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Servings</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">{{ nutrition.servings }} portions</div>
+                                {% elif servings is defined and servings != 'Coming Soon' %}
                                 <i class="fas fa-users text-success mb-2 fs-4"></i>
                                 <div class="small fw-semibold">Servings</div>
                                 <div class="text-muted" style="font-size: 0.75rem;">{{ servings }}</div>
                                 {% else %}
-                                <span class="position-absolute top-0 end-0 badge bg-secondary" style="font-size: 0.5rem; transform: translate(25%, -25%);">Soon</span>
                                 <i class="fas fa-users text-success mb-2 fs-4"></i>
                                 <div class="small fw-semibold">Servings</div>
                                 <div class="text-muted" style="font-size: 0.75rem;">--</div>
@@ -133,22 +141,35 @@
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 position-relative border">
-                                <span class="position-absolute top-0 end-0 badge bg-secondary" style="font-size: 0.5rem; transform: translate(25%, -25%);">Soon</span>
+                            <div class="insight-box rounded-3 p-3 text-center h-100 border"
+                                 style="background: linear-gradient(135deg, #fff5f0, #fff);">
+                                {% if nutrition and nutrition.get('calories') %}
                                 <i class="fas fa-fire-alt text-warning mb-2 fs-4"></i>
                                 <div class="small fw-semibold">Calories</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">--- kcal</div>
+                                <div style="font-size: 0.8rem; font-weight: 800; color: #FF6B35;">{{ nutrition.calories }} kcal</div>
+                                {% else %}
+                                <i class="fas fa-fire-alt text-warning mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Calories</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">Analyzing...</div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 position-relative border">
-                                <span class="position-absolute top-0 end-0 badge bg-secondary" style="font-size: 0.5rem; transform: translate(25%, -25%);">Soon</span>
+                            <div class="insight-box rounded-3 p-3 text-center h-100 border"
+                                 style="background: linear-gradient(135deg, #f0fdf4, #fff);">
+                                {% if nutrition and nutrition.get('health_score') %}
+                                <i class="fas fa-heartbeat text-success mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Health Score</div>
+                                <div style="font-size: 0.8rem; font-weight: 800; color: #4CAF82;">{{ nutrition.health_score }}/100</div>
+                                {% else %}
                                 <i class="fas fa-leaf text-success mb-2 fs-4"></i>
                                 <div class="small fw-semibold">Diet</div>
                                 <div class="text-muted" style="font-size: 0.75rem;">Various</div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -192,6 +213,8 @@
                     </div>
                 </div>
             </div>
+
+            {% include 'components/nutrition_card.html' %}
 
             {% else %}
             <!-- Error State -->
@@ -325,6 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
         confidence: {{ confidence|tojson }},
         cooking_time: {{ (cooking_time if cooking_time is defined else '')|tojson }},
         servings: {{ (servings if servings is defined else '')|tojson }},
+        nutrition: {{ (nutrition if nutrition is defined and nutrition)|tojson if (nutrition is defined and nutrition) else 'null' }},
         next_url: window.location.pathname + window.location.search
     };
 

@@ -5,6 +5,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_book.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -85,6 +86,24 @@
                                 <div class="text-muted" style="font-size: 0.75rem;">{{ recipe.cooking_time or '—' }}</div>
                             </div>
                         </div>
+                        {% if nutrition and nutrition.get('calories') %}
+                        <div class="col-6">
+                            <div class="insight-box rounded-3 p-3 text-center h-100 border"
+                                 style="background: linear-gradient(135deg, #fff5f0, #fff);">
+                                <i class="fas fa-fire-alt text-warning mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Calories</div>
+                                <div style="font-size: 0.8rem; font-weight: 800; color: #FF6B35;">{{ nutrition.calories }} kcal</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="insight-box rounded-3 p-3 text-center h-100 border"
+                                 style="background: linear-gradient(135deg, #f0fdf4, #fff);">
+                                <i class="fas fa-heartbeat text-success mb-2 fs-4"></i>
+                                <div class="small fw-semibold">Health Score</div>
+                                <div style="font-size: 0.8rem; font-weight: 800; color: #4CAF82;">{{ nutrition.health_score }}/100</div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <!-- Delete Button -->
@@ -144,6 +163,9 @@
                     </div>
                 </div>
             </div>
+
+            {% include 'components/nutrition_card.html' %}
+
         </div>
     </div>
 </div>
