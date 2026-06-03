@@ -1,0 +1,307 @@
+# Ask Chef AI — Context-Aware Multilingual Cooking Assistant
+
+Add a premium "Ask Chef AI" chatbot feature to the AI Recipe Generator. After a recipe is generated (or when viewing a saved recipe), users can chat with an AI chef that automatically knows the recipe context, uploaded image, ingredients, and nutrition data. Includes voice input, text-to-speech, and multilingual support for 6 languages.
+
+## Architecture Overview
+
+```mermaid
+flowchart TB
+    subgraph Frontend
+        RP["Result Page"]
+        RD["Recipe Detail Page"]
+        CC["Chef Chat Component"]
+        SI["Speech Input (Web Speech API)"]
+        SO["Speech Output (SpeechSynthesis API)"]
+        QA["Quick Action Buttons"]
+        LS["Language Selector"]
+    end
+
+    subgraph Backend
+        CR["Chef AI Routes (Blueprint)"]
+        CS["Chef AI Service"]
+        GS["Gemini Service (existing)"]
+    end
+
+    subgraph Database
+        CM["ChatMessage Model"]
+    end
+
+    RP --> CC
+    RD --> CC
+    CC --> SI
+    CC --> SO
+    CC --> QA
+    CC --> LS
+    CC -->|"POST /chef-ai/chat"| CR
+    CR --> CS
+    CS --> GS
+    CS -->|"image + recipe context"| GS
+    CR --> CM
+```
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Gemini Free Tier Limits**: The implementation caps context at `MAX_CONTEXT_MESSAGES = 10` (last 10 messages) plus recipe metadata and image. This keeps each API call within ~2K tokens of history. Is this limit acceptable, or would you prefer a different cap?
+
+> [!IMPORTANT]
+> **TTS Approach**: The plan uses **browser-native SpeechSynthesis API** for text-to-speech (zero server cost, works offline). Browser support for Indian languages (Malayalam, Tamil, Telugu, Kannada) varies by device. If browser TTS quality is insufficient, we can add a gTTS server-side fallback later. Acceptable?
+
+> [!WARNING]
+> **Database Migration**: Adding `ChatMessage` requires a DB migration. Since we're using SQLite with `db.create_all()`, the new table will be auto-created. No data loss risk — existing tables are untouched.
+
+## Open Questions
+
+> [!NOTE]
+> **Guest Chat History**: The spec says "Guests can use session-only memory." Currently guests can generate recipes but can't save them. Should guest chat messages persist in the Flask session (lost on browser close) or should we skip chat persistence for guests entirely and just keep in-memory during the page session?
+
+> [!NOTE]
+> **Image Sending to Gemini**: Sending the uploaded image with every chat message increases Gemini API cost significantly. The plan sends the image only on the **first message** of each chat session and for image-specific questions. Is that acceptable, or should every message include the image?
+
+---
+
+## Proposed Changes
+
+### Component 1: Database Models
+
+#### [NEW] [chat_models.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/chat_models.py)
+
+New SQLAlchemy model for chat persistence:
+
+```python
+class ChatMessage(db.Model):
+    id              = Column(Integer, primary_key=True)
+    user_id         = Column(Integer, ForeignKey('user.id'), nullable=True)  # NULL for guests
+    recipe_id       = Column(Integer, ForeignKey('saved_recipe.id'), nullable=True)
+    result_id       = Column(String(36), nullable=True)   # UUID for unsaved recipe results
+    session_id      = Column(String(36), nullable=False)  # groups messages in one chat session
+    role            = Column(String(10), nullable=False)   # 'user' or 'assistant'
+    message         = Column(Text, nullable=False)
+    language        = Column(String(20), default='en')
+    created_at      = Column(DateTime, default=datetime.utcnow)
+```
+
+#### [MODIFY] [__init__.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/__init__.py)
+
+- Import `ChatMessage` alongside `User, SavedRecipe` in the `db.create_all()` block
+- Register the new `chef_ai_bp` blueprint
+
+---
+
+### Component 2: Chef AI Backend Service
+
+#### [NEW] [chef_ai_service.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/services/chef_ai_service.py)
+
+Core service that manages Gemini conversations for Chef AI:
+
+- **`CHEF_SYSTEM_PROMPT`** — The dedicated Chef AI persona prompt (as specified)
+- **`build_context()`** — Constructs the Gemini prompt with recipe context (food name, ingredients, steps, nutrition) injected as system context
+- **`chat()`** — Main function: takes user message + recipe context + conversation history (last 10), calls Gemini `generate_content()`, returns response
+- **`MAX_CONTEXT_MESSAGES = 10`** — Cost optimization constant
+- Uses `google.genai.Client` consistent with existing [gemini_service.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/services/gemini_service.py)
+- Image is sent as `PIL.Image` to Gemini on first message or when user asks about the image
+
+#### [MODIFY] [__init__.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/services/__init__.py)
+
+- Update docstring to include `chef_ai_service`
+
+---
+
+### Component 3: Chef AI API Routes
+
+#### [NEW] [chef_ai.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/chef_ai.py)
+
+Flask Blueprint `chef_ai_bp` with these routes:
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/chef-ai/chat` | POST | Main chat endpoint. Accepts JSON: `{message, result_id, recipe_id, language, session_id, include_image}`. Returns `{response, session_id}` |
+| `/chef-ai/history/<session_id>` | GET | Retrieve chat history for a session (auth required) |
+| `/chef-ai/sessions` | GET | List user's chat sessions (auth required) |
+
+**Chat endpoint logic:**
+1. Resolve recipe context from either `result_id` (in-memory `_TEMP_RESULTS`) or `recipe_id` (DB `SavedRecipe`)
+2. Fetch last 10 messages from DB (or session for guests)
+3. Build Gemini prompt with Chef AI system prompt + recipe context + history
+4. Call `chef_ai_service.chat()`
+5. Save user message + AI response to DB (or session)
+6. Return JSON response
+
+#### [MODIFY] [routes.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/routes.py)
+
+- Expose `_TEMP_RESULTS` dict as a module-level accessor `get_temp_result(result_id)` so the chef_ai blueprint can read recipe context for unsaved results
+
+---
+
+### Component 4: Chat UI Component
+
+#### [NEW] [chef_chat.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/components/chef_chat.html)
+
+Reusable Jinja2 component (included via `{% include %}`) that renders:
+
+- **Header**: "🧑‍🍳 Ask Chef AI" with gradient accent
+- **Language Selector**: Dropdown with 6 languages (English, Malayalam, Hindi, Tamil, Telugu, Kannada)
+- **Chat Messages Area**: Scrollable container with modern chat bubbles (user = right-aligned coral, AI = left-aligned with chef avatar)
+- **Quick Action Buttons**: 6 pill buttons (Ingredient Substitutions, Cooking Tips, Healthier Version, Vegetarian Version, Serving Suggestions, Storage Advice)
+- **Input Area**: Text input + 🎤 Speak button + Send button
+- **Each AI message**: Includes a 🔊 Listen button for TTS
+
+Design tokens from [main.css](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/css/main.css): uses `--primary-color: #ff6b6b`, `--font-heading: 'Outfit'`, `--font-sans: 'Inter'`, `rounded-4`, `shadow-sm` to match existing branding.
+
+#### [NEW] [chef_chat.css](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/css/chef_chat.css)
+
+Dedicated stylesheet for the chat component:
+
+- Chat container with glassmorphism effect
+- Message bubbles with smooth entrance animations
+- Typing indicator animation (3 bouncing dots)
+- Voice recording pulse animation
+- Language selector styling
+- Quick action button hover effects
+- Mobile responsive (full-width on `< 768px`)
+
+---
+
+### Component 5: Chat JavaScript
+
+#### [NEW] [chef_chat.js](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/js/chef_chat.js)
+
+Main chat controller:
+
+- `ChefChat` class managing:
+  - Message sending via `fetch('/chef-ai/chat', ...)`
+  - DOM manipulation for adding messages
+  - Session ID management (UUID generated client-side)
+  - Auto-scroll to latest message
+  - Typing indicator show/hide
+  - Quick action button handlers (send predefined prompts)
+  - Language selector change handler
+  - Markdown-lite formatting of AI responses
+
+---
+
+### Component 6: Voice Input
+
+#### [NEW] [speech_input.js](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/js/speech_input.js)
+
+Web Speech API integration:
+
+- `SpeechInput` class:
+  - Uses `webkitSpeechRecognition` / `SpeechRecognition`
+  - Language mapping: `{en: 'en-US', ml: 'ml-IN', hi: 'hi-IN', ta: 'ta-IN', te: 'te-IN', kn: 'kn-IN'}`
+  - Start/stop recording with visual feedback (pulsing mic button)
+  - Populates chat input field with transcript
+  - Graceful fallback: hides mic button if API not available
+
+---
+
+### Component 7: Voice Output (TTS)
+
+#### [NEW] [speech_output.js](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/js/speech_output.js)
+
+Browser SpeechSynthesis API integration:
+
+- `SpeechOutput` class:
+  - `speak(text, langCode)` — converts text to speech
+  - Language-to-voice mapping matching selected chat language
+  - Stop currently playing audio before new playback
+  - Toggle button state (🔊 → 🔇 while playing)
+  - Graceful fallback if browser doesn't support TTS
+
+---
+
+### Component 8: Result Page Integration
+
+#### [MODIFY] [result.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/result.html)
+
+Add the Chef AI chat panel below the "Save To Recipe Book" section (around line 248):
+
+```html
+<!-- Ask Chef AI -->
+{% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
+<div class="mt-4">
+    {% include 'components/chef_chat.html' %}
+</div>
+{% endif %}
+```
+
+Pass recipe context as JSON data attributes for JavaScript to consume:
+- `data-food-name`, `data-result-id`, `data-image-path`, `data-source`
+- Hidden `<script>` block with `window.__chefContext = {...}` containing full recipe data
+
+Add CSS/JS imports in the `extra_css` and `extra_js` blocks.
+
+---
+
+### Component 9: Recipe Book Integration
+
+#### [MODIFY] [recipe_detail.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/recipe_detail.html)
+
+Add Chef AI chat panel below the nutrition card (around line 167):
+
+```html
+<!-- Ask Chef AI -->
+<div class="mt-4">
+    {% include 'components/chef_chat.html' %}
+</div>
+```
+
+Pass recipe context from the saved recipe: `recipe.food_name`, `recipe.get_ingredients()`, `recipe.get_recipe_steps()`, `recipe.id`, etc.
+
+---
+
+### Component 10: Multilingual Support
+
+Handled entirely through Gemini prompt engineering — no manual translation needed:
+
+- The language selector sends a `language` code with each chat request
+- The Chef AI service appends to the system prompt: `"You MUST respond entirely in {language_name}. Do not mix languages."`
+- Language map: `{en: "English", ml: "Malayalam", hi: "Hindi", ta: "Tamil", te: "Telugu", kn: "Kannada"}`
+- Voice input and TTS also use the matching language BCP-47 code
+
+---
+
+## File Summary
+
+### New Files (8)
+| File | Purpose |
+|------|---------|
+| [chat_models.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/chat_models.py) | ChatMessage database model |
+| [chef_ai.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/chef_ai.py) | Flask blueprint with chat API routes |
+| [chef_ai_service.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/services/chef_ai_service.py) | Gemini Chef AI conversation service |
+| [chef_chat.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/components/chef_chat.html) | Reusable chat UI component |
+| [chef_chat.css](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/css/chef_chat.css) | Chat component styles |
+| [chef_chat.js](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/js/chef_chat.js) | Chat controller JavaScript |
+| [speech_input.js](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/js/speech_input.js) | Voice input via Web Speech API |
+| [speech_output.js](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/static/js/speech_output.js) | TTS via SpeechSynthesis API |
+
+### Modified Files (5)
+| File | Change |
+|------|--------|
+| [__init__.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/__init__.py) | Import ChatMessage, register chef_ai_bp |
+| [routes.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/routes.py) | Add `get_temp_result()` accessor |
+| [result.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/result.html) | Include chef_chat component + JS/CSS |
+| [recipe_detail.html](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/Templates/recipe_detail.html) | Include chef_chat component + JS/CSS |
+| [services/__init__.py](file:///f:/Projects/Recipe-Generation-from-Food-Image/Foodimg2Ing/services/__init__.py) | Update docstring |
+
+---
+
+## Verification Plan
+
+### Automated Tests
+1. **Unit test** for `chef_ai_service.py` — verify prompt construction, context truncation to 10 messages, language injection
+2. **Route test** for `/chef-ai/chat` — verify it returns valid JSON, handles missing context gracefully, rejects non-food queries
+3. **DB test** — verify ChatMessage creation and retrieval
+4. Run: `python -m pytest tests/test_chef_ai.py -v` (test file created as part of implementation)
+
+### Manual Verification
+1. **Start app** with `python run.py` and upload a food image
+2. **Generate recipe** → verify Chef AI panel appears below results
+3. **Send chat message** → verify AI responds with recipe context awareness
+4. **Test voice input** → click 🎤, speak, verify text populates input
+5. **Test TTS** → click 🔊 on AI response, verify speech output
+6. **Test language switching** → select Malayalam, send message, verify response in Malayalam
+7. **Test quick actions** → click each button, verify appropriate response
+8. **Test Recipe Book** → open saved recipe → verify Chef AI works with saved recipe context
+9. **Mobile test** → resize browser to mobile width, verify responsive layout
+10. **Cost check** — verify only last 10 messages are sent to Gemini via server logs

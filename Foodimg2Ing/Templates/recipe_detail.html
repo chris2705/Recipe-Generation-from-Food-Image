@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_book.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chef_chat.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -166,7 +167,30 @@
 
             {% include 'components/nutrition_card.html' %}
 
+            <!-- 🧑‍🍳 Ask Chef AI Chat Panel -->
+            <div class="mt-4">
+                {% include 'components/chef_chat.html' %}
+            </div>
+
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.__chefContext = {
+    food_name: {{ recipe.food_name|tojson }},
+    ingredients: {{ recipe.get_ingredients()|tojson }},
+    recipe_steps: {{ recipe.get_recipe_steps()|tojson }},
+    nutrition: {{ nutrition|tojson if nutrition else 'null' }},
+    prediction_source: {{ (recipe.prediction_source or 'AI Model')|tojson }},
+    image_path: {{ (recipe.image_path or '')|tojson }},
+    result_id: null,
+    recipe_id: {{ recipe.id|tojson }}
+};
+</script>
+<script src="{{ url_for('static', filename='js/speech_output.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chef_chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/speech_input.js') }}"></script>
 {% endblock %}

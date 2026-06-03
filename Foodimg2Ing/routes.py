@@ -12,6 +12,16 @@ logger = logging.getLogger(__name__)
 _TEMP_RESULTS = {}
 
 
+def get_temp_result(result_id: str) -> dict | None:
+    """
+    Retrieve a temporary recipe result by ID.
+
+    Used by the Chef AI blueprint to access recipe context for
+    recipes that haven't been saved to the recipe book yet.
+    """
+    return _TEMP_RESULTS.get(result_id)
+
+
 def _enrich_with_nutrition(result_data: dict) -> dict:
     """
     Run nutrition analysis on a prediction result and merge the output.

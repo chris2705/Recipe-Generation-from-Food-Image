@@ -43,12 +43,15 @@ def load_user(user_id):
 # --- Create database tables ---
 with app.app_context():
     from Foodimg2Ing.models import User, SavedRecipe  # noqa: F401
+    from Foodimg2Ing.chat_models import ChatMessage  # noqa: F401
     db.create_all()
 
 # --- Register blueprints & routes ---
 from Foodimg2Ing import routes  # noqa: F401, E402
 from Foodimg2Ing.auth import auth_bp  # noqa: F401, E402
 from Foodimg2Ing.recipe_book import recipe_book_bp  # noqa: F401, E402
+from Foodimg2Ing.chef_ai import chef_ai_bp  # noqa: F401, E402
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(recipe_book_bp)
+app.register_blueprint(chef_ai_bp)

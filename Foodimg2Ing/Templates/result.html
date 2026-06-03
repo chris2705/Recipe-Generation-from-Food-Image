@@ -3,6 +3,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chef_chat.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -247,6 +248,13 @@
             </div>
             {% endif %}
 
+            <!-- 🧑‍🍳 Ask Chef AI Chat Panel -->
+            {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
+            <div class="mt-4">
+                {% include 'components/chef_chat.html' %}
+            </div>
+            {% endif %}
+
             <!-- Second Opinion: Gemini Result Side-by-Side -->
             {% if gemini_result %}
             <div class="mt-5 pt-4 border-top">
@@ -438,5 +446,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<!-- Chef AI Context & Scripts -->
+{% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
+<script>
+window.__chefContext = {
+    food_name: {{ title[0]|tojson }},
+    ingredients: {{ ingredients[0]|tojson }},
+    recipe_steps: {{ recipe[0]|tojson }},
+    nutrition: {{ (nutrition if nutrition is defined and nutrition)|tojson if (nutrition is defined and nutrition) else 'null' }},
+    prediction_source: {{ source|tojson }},
+    image_path: {{ img|tojson }},
+    result_id: {{ result_id|tojson }},
+    recipe_id: null
+};
+</script>
+<script src="{{ url_for('static', filename='js/speech_output.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chef_chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/speech_input.js') }}"></script>
+{% endif %}
 {% endblock %}
 

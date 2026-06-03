@@ -1,0 +1,99 @@
+{#
+  chef_chat.html — Ask Chef AI Chat Component
+
+  Reusable chat panel that can be included in:
+    - result.html (freshly generated recipes)
+    - recipe_detail.html (saved recipe book recipes)
+
+  Required context (set via window.__chefContext in the parent template):
+    - food_name, ingredients, recipe_steps, nutrition,
+      prediction_source, image_path, result_id, recipe_id
+
+  Usage:
+    {% include 'components/chef_chat.html' %}
+#}
+
+<div class="chef-chat-container" id="chef-chat-panel">
+
+    <!-- Header -->
+    <div class="chef-chat-header">
+        <div class="chef-chat-header-left">
+            <div class="chef-avatar">🧑‍🍳</div>
+            <div>
+                <h5 class="chef-chat-title">Ask Chef AI</h5>
+                <p class="chef-chat-subtitle">Your personal cooking assistant</p>
+            </div>
+        </div>
+
+        <!-- Language Selector -->
+        <select class="chef-lang-select" id="chef-lang-selector" title="Response Language">
+            <option value="en">🇬🇧 English</option>
+            <option value="ml">🇮🇳 Malayalam</option>
+            <option value="hi">🇮🇳 Hindi</option>
+            <option value="ta">🇮🇳 Tamil</option>
+            <option value="te">🇮🇳 Telugu</option>
+            <option value="kn">🇮🇳 Kannada</option>
+        </select>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="chef-chat-messages" id="chef-chat-messages">
+        <!-- Welcome Message -->
+        <div class="chef-welcome" id="chef-welcome">
+            <span class="chef-welcome-icon">🧑‍🍳</span>
+            <h5>Hi! I'm Chef AI</h5>
+            <p>Ask me anything about this recipe — ingredient swaps, cooking tips, or nutritional questions!</p>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="chef-typing" id="chef-typing">
+            <div class="chef-msg-avatar" style="background: linear-gradient(135deg, #ff6b6b, #ee5a6f); color: #fff;">🧑‍🍳</div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="chef-quick-actions" id="chef-quick-actions">
+        <button class="btn-quick-action" data-prompt="What are some good ingredient substitutions for this recipe?">
+            🔄 Substitutions
+        </button>
+        <button class="btn-quick-action" data-prompt="Give me some helpful cooking tips for this recipe.">
+            💡 Cooking Tips
+        </button>
+        <button class="btn-quick-action" data-prompt="How can I make a healthier version of this recipe?">
+            🥗 Healthier Version
+        </button>
+        <button class="btn-quick-action" data-prompt="How can I make a vegetarian version of this recipe?">
+            🌿 Vegetarian Version
+        </button>
+        <button class="btn-quick-action" data-prompt="What are some good serving suggestions for this dish?">
+            🍽️ Serving Ideas
+        </button>
+        <button class="btn-quick-action" data-prompt="How should I store leftovers of this dish? How long does it last?">
+            📦 Storage Advice
+        </button>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chef-chat-input-area">
+        <input type="text"
+               class="chef-chat-input"
+               id="chef-chat-input"
+               placeholder="Ask Chef AI anything about this recipe..."
+               autocomplete="off"
+               maxlength="500">
+
+        <button class="btn-voice-input" id="btn-voice-input" title="Speak your question">
+            <i class="fas fa-microphone"></i>
+        </button>
+
+        <button class="btn-send-chat" id="btn-send-chat" title="Send message" disabled>
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+
+</div>

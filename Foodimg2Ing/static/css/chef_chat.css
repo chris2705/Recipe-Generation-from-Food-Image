@@ -1,0 +1,506 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Chef Chat — Ask Chef AI Styles
+   Matches the AI Recipe Generator branding (--primary-color: #ff6b6b)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Container ─────────────────────────────────────────────────────── */
+.chef-chat-container {
+    position: relative;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    background: linear-gradient(135deg, #ffffff, #fdf8f8);
+    border: 1px solid rgba(255, 107, 107, 0.15);
+    box-shadow: 0 8px 32px rgba(255, 107, 107, 0.08);
+}
+
+/* ── Header ────────────────────────────────────────────────────────── */
+.chef-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: #fff;
+}
+
+.chef-chat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.chef-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.chef-chat-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.chef-chat-subtitle {
+    font-size: 0.75rem;
+    opacity: 0.85;
+    margin: 0;
+}
+
+/* ── Language Selector ─────────────────────────────────────────────── */
+.chef-lang-select {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    border-radius: 0.75rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.chef-lang-select:hover,
+.chef-lang-select:focus {
+    background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.chef-lang-select option {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+/* ── Messages Area ─────────────────────────────────────────────────── */
+.chef-chat-messages {
+    height: 420px;
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    scroll-behavior: smooth;
+    background: linear-gradient(180deg, #fefefe 0%, #fdf7f7 100%);
+}
+
+.chef-chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chef-chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chef-chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 107, 107, 0.2);
+    border-radius: 3px;
+}
+
+.chef-chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 107, 107, 0.4);
+}
+
+/* ── Welcome Message ───────────────────────────────────────────────── */
+.chef-welcome {
+    text-align: center;
+    padding: 2rem 1rem;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.chef-welcome-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.chef-welcome h5 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+.chef-welcome p {
+    color: #6b7280;
+    font-size: 0.9rem;
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+/* ── Message Bubbles ───────────────────────────────────────────────── */
+.chef-msg {
+    display: flex;
+    gap: 0.6rem;
+    max-width: 85%;
+    animation: messageIn 0.3s ease-out;
+}
+
+.chef-msg.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.chef-msg.assistant {
+    align-self: flex-start;
+}
+
+.chef-msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.chef-msg.assistant .chef-msg-avatar {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: #fff;
+}
+
+.chef-msg.user .chef-msg-avatar {
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+    color: #4f46e5;
+}
+
+.chef-msg-bubble {
+    padding: 0.85rem 1.1rem;
+    border-radius: 1.1rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.chef-msg.assistant .chef-msg-bubble {
+    background: #fff;
+    color: #374151;
+    border: 1px solid #f0f0f0;
+    border-bottom-left-radius: 0.3rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.chef-msg.user .chef-msg-bubble {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: #fff;
+    border-bottom-right-radius: 0.3rem;
+    box-shadow: 0 2px 12px rgba(255, 107, 107, 0.25);
+}
+
+/* AI response formatting */
+.chef-msg-bubble p {
+    margin: 0 0 0.5rem 0;
+}
+.chef-msg-bubble p:last-child {
+    margin-bottom: 0;
+}
+.chef-msg-bubble ul,
+.chef-msg-bubble ol {
+    margin: 0.3rem 0;
+    padding-left: 1.4rem;
+}
+.chef-msg-bubble li {
+    margin-bottom: 0.2rem;
+}
+.chef-msg-bubble strong {
+    font-weight: 600;
+}
+
+/* ── Listen Button ─────────────────────────────────────────────────── */
+.chef-msg-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+
+.btn-listen {
+    background: none;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.btn-listen:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.05);
+}
+
+.btn-listen.playing {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+/* ── Typing Indicator ──────────────────────────────────────────────── */
+.chef-typing {
+    display: none;
+    align-self: flex-start;
+    gap: 0.6rem;
+    max-width: 85%;
+}
+
+.chef-typing.visible {
+    display: flex;
+}
+
+.typing-dots {
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 1.1rem;
+    border-bottom-left-radius: 0.3rem;
+    padding: 0.85rem 1.2rem;
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d1d5db;
+    animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.typing-dots span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); background: #d1d5db; }
+    30% { transform: translateY(-6px); background: #ff6b6b; }
+}
+
+/* ── Quick Actions ─────────────────────────────────────────────────── */
+.chef-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid #f5f5f5;
+    background: #fefefe;
+}
+
+.btn-quick-action {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 2rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.78rem;
+    font-family: 'Inter', sans-serif;
+    color: #4a4a4a;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.btn-quick-action:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.04);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255, 107, 107, 0.12);
+}
+
+.btn-quick-action:active {
+    transform: translateY(0);
+}
+
+/* ── Input Area ────────────────────────────────────────────────────── */
+.chef-chat-input-area {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #f0f0f0;
+    background: #fff;
+}
+
+.chef-chat-input {
+    flex: 1;
+    border: 1.5px solid #e8e8e8;
+    border-radius: 1.5rem;
+    padding: 0.7rem 1.1rem;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #fafafa;
+}
+
+.chef-chat-input:focus {
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    background: #fff;
+}
+
+.chef-chat-input::placeholder {
+    color: #b0b0b0;
+}
+
+.btn-voice-input {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid #e8e8e8;
+    background: #fff;
+    color: #6b7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+}
+
+.btn-voice-input:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.04);
+}
+
+.btn-voice-input.recording {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+    animation: pulseRecording 1.5s infinite;
+}
+
+@keyframes pulseRecording {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+.btn-send-chat {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+    box-shadow: 0 3px 12px rgba(255, 107, 107, 0.3);
+}
+
+.btn-send-chat:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(255, 107, 107, 0.4);
+}
+
+.btn-send-chat:active {
+    transform: translateY(0);
+}
+
+.btn-send-chat:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ── Animations ────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes messageIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ── Mobile Responsive ─────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+    .chef-chat-messages {
+        height: 350px;
+        padding: 1rem;
+    }
+
+    .chef-chat-header {
+        padding: 1rem 1.15rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .chef-lang-select {
+        width: 100%;
+        margin-top: 0.25rem;
+    }
+
+    .chef-msg {
+        max-width: 92%;
+    }
+
+    .chef-quick-actions {
+        padding: 0.6rem 1rem;
+        gap: 0.4rem;
+    }
+
+    .btn-quick-action {
+        font-size: 0.72rem;
+        padding: 0.35rem 0.7rem;
+    }
+
+    .chef-chat-input-area {
+        padding: 0.75rem 1rem;
+    }
+
+    .chef-chat-input {
+        font-size: 0.85rem;
+        padding: 0.6rem 0.9rem;
+    }
+}
+
+/* ── Voice not supported notice ────────────────────────────────────── */
+.btn-voice-input.hidden {
+    display: none;
+}
