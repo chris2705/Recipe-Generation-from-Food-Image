@@ -12,3 +12,5 @@ google-genai
 python-dotenv
 flask-sqlalchemy
 flask-login
+edge-tts
+moviepy

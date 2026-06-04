@@ -55,3 +55,8 @@ from Foodimg2Ing.chef_ai import chef_ai_bp  # noqa: F401, E402
 app.register_blueprint(auth_bp)
 app.register_blueprint(recipe_book_bp)
 app.register_blueprint(chef_ai_bp)
+
+# --- Video Recipe Generator ---
+from Foodimg2Ing.video_bp import video_bp, start_cleanup_thread  # noqa: F401, E402
+app.register_blueprint(video_bp)
+start_cleanup_thread()

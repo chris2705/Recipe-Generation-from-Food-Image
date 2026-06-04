@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}{{ food_name }} Cooking Video | AI Recipe Generator{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/video.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="video-page py-4">
+  <div class="container">
+
+    <!-- Back link -->
+    <div class="mb-3">
+      <a href="{{ url_for('generate') }}" class="text-decoration-none" style="color:rgba(255,255,255,0.4); font-size:0.9rem;">
+        <i class="fas fa-arrow-left me-2"></i>Back to Generator
+      </a>
+    </div>
+
+    <!-- Hero -->
+    <div class="video-hero mb-4">
+      <div class="food-name">{{ food_name }}</div>
+      <div class="mt-2">
+        <span class="language-badge">
+          <i class="fas fa-globe"></i> {{ language }}
+        </span>
+        {% if not error %}
+        <span class="language-badge ms-2" style="background:rgba(32,201,151,0.15); border-color:rgba(32,201,151,0.3); color:#6ee7b7;">
+          <i class="fas fa-check-circle"></i> Ready
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── SUCCESS STATE ─────────────────────────────────────────── -->
+    {% if video_url and not error %}
+
+    {# Confetti overlay triggered by JS #}
+    <div class="celebration-overlay" id="celebrationOverlay"></div>
+
+    <div class="video-result-card mx-auto" style="max-width:800px;">
+
+      <!-- Video player -->
+      <div class="video-player-wrapper">
+        <video
+          id="recipeVideo"
+          controls
+          preload="metadata"
+          poster=""
+          style="width:100%; max-height:65vh; display:block; background:#000; object-fit:contain;"
+        >
+          <source src="{{ url_for('static', filename=video_url) }}" type="video/mp4">
+          Your browser does not support HTML5 video.
+        </video>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="video-result-actions">
+
+        <a href="{{ url_for('video.download', job_id=job_id) }}"
+           class="btn-video-action btn-download-video"
+           id="downloadBtn">
+          <i class="fas fa-download"></i> Download Video
+        </a>
+
+        <button class="btn-video-action btn-regen-video"
+                id="regenBtn"
+                onclick="showRegenPanel()">
+          <i class="fas fa-redo"></i> Generate Again
+        </button>
+
+        <button class="btn-video-action btn-change-lang"
+                id="changeLangBtn"
+                onclick="showRegenPanel(true)">
+          <i class="fas fa-globe"></i> Change Language
+        </button>
+
+      </div>
+
+      <!-- Video metadata strip -->
+      <div class="video-info-strip">
+        <span><i class="fas fa-video"></i> MP4 · H.264</span>
+        <span><i class="fas fa-expand-arrows-alt"></i> 1080 × 1920</span>
+        <span><i class="fas fa-film"></i> 30 fps</span>
+        <span><i class="fas fa-clock"></i> Generated just now</span>
+      </div>
+
+    </div>
+
+    <!-- Regen panel (hidden by default) -->
+    <div class="mt-4 text-center d-none" id="regenPanel">
+      <div class="lang-selector-wrapper mx-auto" style="max-width:480px;">
+        <div class="lang-selector-title">Choose Language</div>
+        <div class="lang-pills" id="langPillsRegen">
+          <span class="lang-pill selected" data-lang="english">🇬🇧 English</span>
+          <span class="lang-pill" data-lang="malayalam">🇮🇳 Malayalam</span>
+          <span class="lang-pill" data-lang="hindi">🇮🇳 Hindi</span>
+          <span class="lang-pill" data-lang="tamil">🇮🇳 Tamil</span>
+          <span class="lang-pill" data-lang="telugu">🇮🇳 Telugu</span>
+          <span class="lang-pill" data-lang="kannada">🇮🇳 Kannada</span>
+        </div>
+        <div class="mt-3">
+          <button class="btn-generate-video" id="regenStartBtn" onclick="regenerateVideo()">
+            <i class="fas fa-film me-2"></i> Generate New Video
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {% endif %}
+
+    <!-- ── ERROR STATE ────────────────────────────────────────────── -->
+    {% if error %}
+    <div class="video-error-card">
+      <div class="error-icon">⚠️</div>
+      <h4>Video Generation Failed</h4>
+      <p class="mb-3">{{ error }}</p>
+      <p class="mb-4" style="font-size:0.8rem; color:rgba(255,255,255,0.3);">
+        Tip: make sure FFmpeg is installed on this machine.
+        Run <code style="color:#ff9a9e;">winget install ffmpeg</code> in PowerShell.
+      </p>
+      <a href="{{ url_for('generate') }}" class="btn-generate-video d-inline-block" style="max-width:240px;">
+        <i class="fas fa-arrow-left me-2"></i> Back to Generator
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- ── STILL PROCESSING (fallback for direct URL access) ──────── -->
+    {% if not video_url and not error %}
+    <div class="processing-card text-center mx-auto" style="max-width:500px;">
+      <div class="chef-animation-wrapper mx-auto mb-3">
+        <div class="chef-glow"></div>
+        <span class="chef-emoji">🧑‍🍳</span>
+      </div>
+      <h5 style="color:#ff9a9e; font-family:var(--font-heading);">Still cooking…</h5>
+      <p style="color:rgba(255,255,255,0.4); font-size:0.9rem;">
+        Your video is still being generated. Please wait a moment.
+      </p>
+      <meta http-equiv="refresh" content="5">
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const JOB_ID      = {{ job_id | tojson }};
+const RECIPE_ID   = {{ recipe_id | tojson if recipe_id else 'null' }};
+
+// ── Confetti celebration ─────────────────────────────────────────────────
+(function celebrateOnLoad() {
+  const overlay = document.getElementById('celebrationOverlay');
+  if (!overlay) return;
+  const colours = ['#ff6b6b','#ff9a9e','#ffd1d1','#20c997','#a78bfa','#fbbf24'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const spark = document.createElement('div');
+      spark.className = 'spark';
+      spark.style.cssText = `
+        left: ${Math.random() * 100}vw;
+        background: ${colours[Math.floor(Math.random() * colours.length)]};
+        width: ${4 + Math.random() * 8}px;
+        height: ${4 + Math.random() * 8}px;
+        animation-duration: ${1.5 + Math.random() * 2}s;
+        animation-delay: ${Math.random() * 0.5}s;
+      `;
+      overlay.appendChild(spark);
+      setTimeout(() => spark.remove(), 4000);
+    }, i * 30);
+  }
+})();
+
+// ── Language pills (regen panel) ─────────────────────────────────────────
+let selectedLang = 'english';
+document.querySelectorAll('#langPillsRegen .lang-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('#langPillsRegen .lang-pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+    selectedLang = pill.dataset.lang;
+  });
+});
+
+function showRegenPanel(changeLang = false) {
+  const panel = document.getElementById('regenPanel');
+  if (panel) {
+    panel.classList.remove('d-none');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ── Regenerate ────────────────────────────────────────────────────────────
+// Store recipe data in sessionStorage from the processing page, OR we
+// fetch it from the recipe_id if available.
+function regenerateVideo() {
+  const btn = document.getElementById('regenStartBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Starting…'; }
+
+  // Try to read from sessionStorage first
+  const storedData = sessionStorage.getItem('videoRecipeData_' + JOB_ID);
+  if (storedData) {
+    const rd = JSON.parse(storedData);
+    _doRegenerate(rd);
+    return;
+  }
+
+  // If recipe_id is known, fall back to the from-recipe endpoint
+  if (RECIPE_ID) {
+    window.location.href = '/video/from-recipe/' + RECIPE_ID;
+    return;
+  }
+
+  alert('Recipe data not found. Please go back and generate a new video.');
+  if (btn) { btn.disabled = false; btn.textContent = 'Generate New Video'; }
+}
+
+function _doRegenerate(recipeData) {
+  fetch('/video/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      food_name:    recipeData.food_name,
+      ingredients:  recipeData.ingredients,
+      recipe_steps: recipeData.recipe_steps,
+      language:     selectedLang,
+      recipe_id:    recipeData.recipe_id || null,
+    }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.redirect_url) window.location.href = data.redirect_url;
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Network error. Please try again.');
+  });
+}
+</script>
+{% endblock %}

@@ -9,6 +9,8 @@ Changelog:
   v2 — Added nutrition columns (calories, protein, carbs, fat, fiber, sugar,
        sodium, nutrition_servings, health_score, diet_tags) for Phase 2
        Nutrition Analysis feature. All nullable for backwards compatibility.
+  v3 — Added video_path, video_language, video_created_at for Phase 3
+       AI Video Recipe Generator feature. All nullable for backwards compatibility.
 """
 
 import json
@@ -82,6 +84,12 @@ class SavedRecipe(db.Model):
     nutrition_servings = db.Column(db.Integer, nullable=True)  # numeric, separate from servings string
     health_score     = db.Column(db.Integer, nullable=True)    # 0-100
     diet_tags        = db.Column(db.Text,    nullable=True)    # JSON list of tag names
+
+    # --- Video Generator columns (Phase 3) ---
+    # All nullable: existing recipes just show no video until generated.
+    video_path       = db.Column(db.String(500), nullable=True)  # relative static path to MP4
+    video_language   = db.Column(db.String(50),  nullable=True)  # e.g. 'english', 'hindi'
+    video_created_at = db.Column(db.DateTime,    nullable=True)
 
     # Prevent duplicate saves of the same recipe by the same user
     __table_args__ = (

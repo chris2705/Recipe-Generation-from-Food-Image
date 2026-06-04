@@ -1,0 +1,433 @@
+/* ============================================================
+   video.css  –  AI Video Recipe Generator
+   Premium dark-mode styling for video processing & result pages
+   ============================================================ */
+
+/* ---------- Page shell ---------- */
+.video-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a0a0a 50%, #0f0f23 100%);
+    color: #f0f0f8;
+    font-family: var(--font-sans);
+}
+
+/* ---------- Hero header ---------- */
+.video-hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+}
+
+.video-hero .food-name {
+    font-family: var(--font-heading);
+    font-size: clamp(1.6rem, 5vw, 3rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, #ff6b6b, #ff9a9e, #ffd1d1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.video-hero .language-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 107, 107, 0.15);
+    border: 1px solid rgba(255, 107, 107, 0.35);
+    color: #ff9a9e;
+    border-radius: 999px;
+    padding: 0.35rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(8px);
+}
+
+/* ---------- Chef animation ---------- */
+.chef-animation-wrapper {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 2rem;
+}
+
+.chef-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,107,107,0.25) 0%, transparent 70%);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.chef-emoji {
+    font-size: 5rem;
+    line-height: 140px;
+    text-align: center;
+    display: block;
+    position: relative;
+    z-index: 1;
+    animation: chef-bob 1.8s ease-in-out infinite;
+}
+
+@keyframes chef-bob {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50%       { transform: translateY(-10px) rotate(3deg); }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50%       { transform: scale(1.15); opacity: 1; }
+}
+
+/* ---------- Processing card ---------- */
+.processing-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    border-radius: 24px;
+    padding: 2.5rem;
+    backdrop-filter: blur(12px);
+    max-width: 640px;
+    margin: 0 auto;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,107,107,0.05);
+}
+
+/* ---------- Progress bar ---------- */
+.video-progress-track {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 1.5rem 0 0.5rem;
+}
+
+.video-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff6b6b, #ff9a9e, #ffb3b3);
+    background-size: 200% 100%;
+    transition: width 0.5s ease;
+    animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+}
+
+.progress-pct-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Stage steps list ---------- */
+.stage-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0 0;
+}
+
+.stage-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.3s ease;
+}
+
+.stage-list li:last-child { border-bottom: none; }
+
+.stage-list li.active {
+    color: #fff;
+    font-weight: 600;
+}
+
+.stage-list li.done {
+    color: rgba(32, 201, 151, 0.9);
+}
+
+.stage-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stage-list li.active .stage-dot {
+    background: #ff6b6b;
+    box-shadow: 0 0 8px #ff6b6b;
+    animation: dot-pulse 1s ease-in-out infinite;
+}
+
+.stage-list li.done .stage-dot {
+    background: #20c997;
+}
+
+@keyframes dot-pulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.4); }
+}
+
+/* ---------- Language selector (on processing page) ---------- */
+.lang-selector-wrapper {
+    max-width: 640px;
+    margin: 0 auto 2rem;
+}
+
+.lang-selector-title {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.lang-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.lang-pill {
+    cursor: pointer;
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    border: 1.5px solid rgba(255, 107, 107, 0.3);
+    background: rgba(255, 107, 107, 0.07);
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.lang-pill:hover {
+    border-color: rgba(255, 107, 107, 0.6);
+    color: #fff;
+    background: rgba(255, 107, 107, 0.15);
+}
+
+.lang-pill.selected {
+    background: linear-gradient(135deg, #ff6b6b, #ff5252);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.4);
+}
+
+/* ---------- Start button ---------- */
+.btn-generate-video {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    border: none;
+    color: #fff;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.85rem 2.5rem;
+    border-radius: 999px;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(255, 107, 107, 0.35);
+    width: 100%;
+    max-width: 360px;
+}
+
+.btn-generate-video:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5);
+    color: #fff;
+    background: linear-gradient(135deg, #ff5252, #e74c6f);
+}
+
+.btn-generate-video:active {
+    transform: translateY(0);
+}
+
+.btn-generate-video:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ---------- Result page ---------- */
+.video-result-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    border-radius: 24px;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.video-player-wrapper {
+    background: #000;
+    position: relative;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.video-player-wrapper video {
+    width: 100%;
+    max-height: 65vh;
+    display: block;
+    object-fit: contain;
+    background: #000;
+}
+
+.video-result-actions {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.btn-video-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.6rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-download-video {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+}
+
+.btn-download-video:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 107, 107, 0.45);
+    color: #fff;
+}
+
+.btn-regen-video {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.btn-regen-video:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-change-lang {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1.5px solid rgba(255, 107, 107, 0.3);
+    color: #ff9a9e;
+}
+
+.btn-change-lang:hover {
+    background: rgba(255, 107, 107, 0.2);
+    color: #ffb3b3;
+}
+
+/* ---------- Video info strip ---------- */
+.video-info-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    justify-content: center;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.video-info-strip span {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* ---------- Error state ---------- */
+.video-error-card {
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    max-width: 560px;
+    margin: 2rem auto;
+}
+
+.video-error-card .error-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.video-error-card h4 {
+    color: #fca5a5;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.video-error-card p {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 576px) {
+    .processing-card {
+        padding: 1.5rem 1.25rem;
+        border-radius: 18px;
+        margin: 0 0.5rem;
+    }
+
+    .video-result-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn-video-action {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ---------- Spark / confetti celebration overlay ---------- */
+.celebration-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.spark {
+    position: absolute;
+    top: -20px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: fall linear forwards;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+    }
+}

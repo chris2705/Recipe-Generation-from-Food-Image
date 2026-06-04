@@ -1,0 +1,96 @@
+# AI Video Recipe Generator — Walkthrough
+
+## What Was Built
+
+A premium **AI Video Recipe Generator** feature integrated into the existing Flask AI Recipe Generator app. After any recipe is generated (or loaded from the Recipe Book), users can click **🎥 Generate Cooking Video** to create a downloadable narrated MP4 cooking tutorial — 100% locally, using Gemini free tier for text only.
+
+---
+
+## Live Demo Screenshots
+
+### 1. Generate Cooking Video card on result page
+![AI Video Recipe Generator card on result page](file:///C:/Users/CHRISTO%20MARTIN/.gemini/antigravity-ide/brain/25c90b62-a63a-42c5-ab0f-6ef0bd74e195/video_generator_card_1780562106517.png)
+
+### 2. Video processing page (live SSE progress)
+![Video processing page with animated progress bar at 22%](file:///C:/Users/CHRISTO%20MARTIN/.gemini/antigravity-ide/brain/25c90b62-a63a-42c5-ab0f-6ef0bd74e195/video_processing_page_1780562131368.png)
+
+### 3. Video result page (32-second Cheeseburger tutorial)
+![Video result page showing embedded player, Download Video, Generate Again, Change Language buttons](file:///C:/Users/CHRISTO%20MARTIN/.gemini/antigravity-ide/brain/25c90b62-a63a-42c5-ab0f-6ef0bd74e195/video_result_page_1780562858365.png)
+
+---
+
+## Pipeline Architecture
+
+```
+User clicks 🎥 Generate Cooking Video
+        ↓
+POST /video/generate  { food_name, ingredients, recipe_steps, language }
+        ↓ returns job_id
+        ↓
+Background Thread: VideoRecipeGenerator.generate_video()
+  ├─ 5–20%:  Gemini → per-step narration script
+  ├─ 22–40%: edge-tts → per-step MP3 audio files
+  ├─ 42–65%: Pillow → per-step 1080×1920 slide PNGs
+  └─ 68–95%: MoviePy → assembled H.264 MP4
+        ↓
+GET /video/progress/<job_id>  [SSE stream → live progress bar]
+        ↓ auto-redirect on completion
+GET /video/result/<job_id>    [video player + download]
+```
+
+---
+
+## Files Created
+
+| File | Purpose |
+|---|---|
+| `services/tts_service.py` | edge-tts wrapper with 6-language voice registry |
+| `services/video_generator.py` | Full pipeline: Gemini narration → audio → slides → MP4 |
+| `video_bp.py` | Flask blueprint: 5 routes + background job store + cleanup thread |
+| `Templates/video_processing.html` | Dark-mode processing page with SSE live progress |
+| `Templates/video_result.html` | Video player + download + regenerate + confetti |
+| `static/css/video.css` | Premium dark-mode styles (animations, glows, progress bar) |
+| `static/generated_videos/.gitkeep` | Output directory |
+
+## Files Modified
+
+| File | Change |
+|---|---|
+| `requirements.txt` | Added `edge-tts`, `moviepy` |
+| `models.py` | Added `video_path`, `video_language`, `video_created_at` to `SavedRecipe` |
+| `__init__.py` | Registered `video_bp`, started background cleanup thread |
+| `Templates/result.html` | Added dark video card + language pills + JS `startVideoGeneration()` |
+| `Templates/recipe_detail.html` | Added "🎥 Generate Cooking Video" button in left panel |
+
+---
+
+## Feature Highlights
+
+- **6 languages**: English (AriaNeural), Malayalam (SobhanaNeural), Hindi (SwaraNeural), Tamil (PallaviNeural), Telugu (ShrutiNeural), Kannada (SapnaNeural)
+- **1080×1920 portrait** slides (Instagram Reels / YouTube Shorts ready)
+- **Ken Burns zoom** + **fade-in/out** transitions via MoviePy
+- **Step-duration sync**: each slide plays for exactly as long as its TTS audio
+- **SSE live progress**: no polling, no page refreshes — push updates
+- **Confetti animation** on video result page
+- **Guest users**: videos stored 7 days then auto-cleaned
+- **Recipe Book users**: video path persisted to database, shown in recipe detail
+- **Future-ready**: avatar overlay, AI images, social export via single-method extensions
+
+---
+
+## What Was Tested
+
+- ✅ Burger sample recipe → English video → MP4 plays + downloads (32 seconds)
+- ✅ Processing page shows live SSE progress (22% → 68% → 100%)
+- ✅ Video result page: Download Video, Generate Again, Change Language all render
+- ✅ Dark video card appears on result page with all 6 language pills
+- ✅ Flask starts cleanly with no import errors
+- ✅ Cleanup thread starts on app boot
+
+---
+
+## Known Behaviour Notes
+
+- Video generation takes **~3 minutes** for a typical 5-step recipe (mostly MoviePy rendering)
+- If the Flask server restarts, in-memory job state is lost — navigating back to an old `/video/result/<job_id>` will show "Still cooking…" and auto-refresh. Users should download immediately after generation.
+- FFmpeg is bundled with `imageio-ffmpeg` (installed as MoviePy dependency), so no manual FFmpeg installation is required on Windows.

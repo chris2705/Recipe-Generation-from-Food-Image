@@ -114,9 +114,31 @@
                             <i class="fas fa-trash-alt me-2"></i>Remove from Recipe Book
                         </button>
                     </form>
+
+                    <!-- 🎥 Generate Video Button -->
+                    <a href="{{ url_for('video.from_recipe', recipe_id=recipe.id) }}"
+                       class="btn w-100 rounded-pill fw-bold mt-2 shadow-sm"
+                       style="background:linear-gradient(135deg,#0f0f23,#1a0a0a); color:#ff9a9e; border:1.5px solid rgba(255,107,107,0.35); transition:all .3s ease;"
+                       onmouseover="this.style.boxShadow='0 6px 20px rgba(255,107,107,0.35)'; this.style.borderColor='rgba(255,107,107,0.7)'"
+                       onmouseout="this.style.boxShadow=''; this.style.borderColor='rgba(255,107,107,0.35)'">
+                        <i class="fas fa-film me-2"></i>🎥 Generate Cooking Video
+                    </a>
+                    {% if recipe.video_path %}
+                    <div class="mt-2 text-center">
+                        <small style="color:rgba(0,0,0,0.45);">
+                            <i class="fas fa-check-circle text-success me-1"></i>
+                            Video available in {{ recipe.video_language or 'English' }}
+                            <a href="{{ url_for('static', filename=recipe.video_path) }}"
+                               class="ms-1 text-decoration-none" style="color:#ff6b6b;" download>
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </small>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
+
 
         <!-- Right Col: Ingredients & Instructions -->
         <div class="col-lg-8">

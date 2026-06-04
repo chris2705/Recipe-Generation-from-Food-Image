@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Generating Video – {{ food_name }} | AI Recipe Generator{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/video.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="video-page py-4">
+  <div class="container">
+
+    <!-- Back link -->
+    <div class="mb-3">
+      <a href="{{ url_for('generate') }}" class="text-decoration-none" style="color:rgba(255,255,255,0.4); font-size:0.9rem;">
+        <i class="fas fa-arrow-left me-2"></i>Back to Generator
+      </a>
+    </div>
+
+    <!-- Hero -->
+    <div class="video-hero">
+      <div class="chef-animation-wrapper">
+        <div class="chef-glow"></div>
+        <span class="chef-emoji">🧑‍🍳</span>
+      </div>
+      <div class="food-name" id="foodNameHeading">{{ food_name }}</div>
+      {% if language %}
+      <div class="mt-2">
+        <span class="language-badge" id="langBadge">
+          <i class="fas fa-globe"></i> {{ language }}
+        </span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ============================================================
+         PHASE A: Language selector (shown when job_id is None,
+                  i.e. coming from Recipe Book)
+         ============================================================ -->
+    {% if job_id is none %}
+    <div class="lang-selector-wrapper mb-4">
+      <div class="lang-selector-title">Select Narration Language</div>
+      <div class="lang-pills" id="langPills">
+        <span class="lang-pill selected" data-lang="english">🇬🇧 English</span>
+        <span class="lang-pill" data-lang="malayalam">🇮🇳 Malayalam</span>
+        <span class="lang-pill" data-lang="hindi">🇮🇳 Hindi</span>
+        <span class="lang-pill" data-lang="tamil">🇮🇳 Tamil</span>
+        <span class="lang-pill" data-lang="telugu">🇮🇳 Telugu</span>
+        <span class="lang-pill" data-lang="kannada">🇮🇳 Kannada</span>
+      </div>
+    </div>
+
+    <div class="text-center mb-5">
+      <button class="btn-generate-video" id="startGenBtn" onclick="startFromRecipe()">
+        <i class="fas fa-film me-2"></i> Generate Cooking Video
+      </button>
+    </div>
+    {% endif %}
+
+    <!-- ============================================================
+         PHASE B: Processing card (shown when job_id is set)
+         ============================================================ -->
+    {% if job_id is not none %}
+    <div class="processing-card" id="processingCard">
+
+      <div class="text-center mb-3">
+        <h5 class="fw-bold" style="color:#ff9a9e; font-family: var(--font-heading);">
+          <i class="fas fa-circle-notch fa-spin me-2"></i> Creating your video…
+        </h5>
+        <p id="stageLabel" style="color:rgba(255,255,255,0.5); font-size:0.9rem;">
+          Starting up…
+        </p>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="video-progress-track">
+        <div class="video-progress-fill" id="progressFill" style="width:2%;"></div>
+      </div>
+      <div class="progress-pct-label" id="pctLabel">2%</div>
+
+      <!-- Stage checklist -->
+      <ul class="stage-list" id="stageList">
+        <li id="s-narration"><span class="stage-dot"></span> Creating narration script</li>
+        <li id="s-voice"><span class="stage-dot"></span> Generating voice audio</li>
+        <li id="s-slides"><span class="stage-dot"></span> Building video slides</li>
+        <li id="s-assembly"><span class="stage-dot"></span> Assembling video</li>
+        <li id="s-final"><span class="stage-dot"></span> Finalizing MP4</li>
+      </ul>
+
+    </div>
+    {% endif %}
+
+  </div><!-- /container -->
+</div><!-- /video-page -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Shared recipe data (from prefill or from current result) ──────────────
+const PREFILL = {{ prefill | tojson if prefill is defined and prefill else 'null' }};
+const JOB_ID  = {{ job_id | tojson if job_id else 'null' }};
+
+// ── Language pills (phase A) ──────────────────────────────────────────────
+let selectedLang = 'english';
+document.querySelectorAll('.lang-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.lang-pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+    selectedLang = pill.dataset.lang;
+  });
+});
+
+// ── Phase A: start from Recipe Book ──────────────────────────────────────
+function startFromRecipe() {
+  if (!PREFILL) return;
+  const btn = document.getElementById('startGenBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i> Starting…'; }
+
+  fetch('/video/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      food_name:    PREFILL.food_name,
+      ingredients:  PREFILL.ingredients,
+      recipe_steps: PREFILL.recipe_steps,
+      language:     selectedLang,
+      recipe_id:    PREFILL.recipe_id || null,
+    }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.job_id) {
+      window.location.href = data.redirect_url;
+    } else {
+      alert('Failed to start video generation: ' + (data.error || 'Unknown error'));
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-film me-2"></i> Generate Cooking Video'; }
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Network error. Please try again.');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-film me-2"></i> Generate Cooking Video'; }
+  });
+}
+
+// ── Phase B: SSE progress listener ───────────────────────────────────────
+if (JOB_ID) {
+  const progressFill = document.getElementById('progressFill');
+  const pctLabel     = document.getElementById('pctLabel');
+  const stageLabel   = document.getElementById('stageLabel');
+
+  const STAGE_KEYS = {
+    'narration': 's-narration',
+    'voice':     's-voice',
+    'slides':    's-slides',
+    'assembl':   's-assembly',
+    'finaliz':   's-final',
+    'done':      's-final',
+  };
+
+  function updateStageList(stageName, pct) {
+    const lower = (stageName || '').toLowerCase();
+    // Determine which stages are "done" based on progress thresholds
+    const stages = ['s-narration','s-voice','s-slides','s-assembly','s-final'];
+    const thresholds = [20, 40, 65, 90, 100];
+    stages.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (pct > thresholds[i]) {
+        el.className = 'done';
+      } else if (pct > (thresholds[i - 1] || 0)) {
+        el.className = 'active';
+      } else {
+        el.className = '';
+      }
+    });
+  }
+
+  const evtSource = new EventSource('/video/progress/' + JOB_ID);
+
+  evtSource.onmessage = function(e) {
+    try {
+      const d = JSON.parse(e.data);
+      const pct = d.progress || 0;
+
+      if (progressFill) progressFill.style.width = pct + '%';
+      if (pctLabel)     pctLabel.textContent     = pct + '%';
+      if (stageLabel)   stageLabel.textContent    = d.stage || '';
+
+      updateStageList(d.stage, pct);
+
+      if (d.status === 'done') {
+        evtSource.close();
+        // Small delay for the 100% animation to complete
+        setTimeout(() => {
+          window.location.href = '/video/result/' + JOB_ID;
+        }, 800);
+      }
+
+      if (d.status === 'error') {
+        evtSource.close();
+        window.location.href = '/video/result/' + JOB_ID;
+      }
+    } catch (err) {
+      console.error('SSE parse error:', err);
+    }
+  };
+
+  evtSource.onerror = function() {
+    if (evtSource.readyState === EventSource.CLOSED) return;
+    console.warn('SSE connection lost – retrying...');
+  };
+}
+</script>
+{% endblock %}

@@ -40,3 +40,6 @@ Foodimg2Ing/data/modelbest.ckpt
 *.ckpt
 Foodimg2Ing/data/modelbest.ckpt
 *.ckpt
+*.mp3
+*.mp3
+/Foodimg2Ing/static/generated_videos

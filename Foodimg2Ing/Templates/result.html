@@ -248,7 +248,46 @@
             </div>
             {% endif %}
 
+            <!-- 🎥 Generate Cooking Video Button -->
+            {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
+            <div class="card border-0 shadow-sm rounded-4 mt-4" id="video-gen-card"
+                 style="background: linear-gradient(135deg, #0f0f23 0%, #1a0a0a 100%); border: 1.5px solid rgba(255,107,107,0.25) !important;">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-2"><span style="font-size:2rem;">🎬</span></div>
+                    <h6 class="fw-bold mb-1 font-outfit" style="color:#ff9a9e;">AI Video Recipe Generator</h6>
+                    <p class="small mb-3" style="color:rgba(255,255,255,0.45);">
+                        Turn this recipe into a narrated cooking tutorial — downloadable MP4, in your language.
+                    </p>
+                    <div class="mb-3">
+                        <div class="d-flex flex-wrap gap-2 justify-content-center" id="resultLangPills">
+                            <span class="lang-pill-sm selected" data-lang="english">🇬🇧 English</span>
+                            <span class="lang-pill-sm" data-lang="malayalam">🇮🇳 Malayalam</span>
+                            <span class="lang-pill-sm" data-lang="hindi">🇮🇳 Hindi</span>
+                            <span class="lang-pill-sm" data-lang="tamil">🇮🇳 Tamil</span>
+                            <span class="lang-pill-sm" data-lang="telugu">🇮🇳 Telugu</span>
+                            <span class="lang-pill-sm" data-lang="kannada">🇮🇳 Kannada</span>
+                        </div>
+                    </div>
+                    <button class="btn fw-bold rounded-pill px-4 py-2 shadow-sm"
+                            id="generateVideoBtn"
+                            style="background:linear-gradient(135deg,#ff6b6b,#ee5a6f);color:#fff;border:none;font-size:1rem;transition:all .3s ease;"
+                            onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(255,107,107,0.45)'"
+                            onmouseout="this.style.transform='';this.style.boxShadow=''"
+                            onclick="startVideoGeneration()">
+                        <i class="fas fa-film me-2"></i>🎥 Generate Cooking Video
+                    </button>
+                    <div id="videoGenMessage" class="mt-2 small" style="color:rgba(255,255,255,0.4);"></div>
+                </div>
+            </div>
+            <style>
+            .lang-pill-sm{cursor:pointer;padding:.3rem .8rem;border-radius:999px;border:1.5px solid rgba(255,107,107,.3);background:rgba(255,107,107,.07);color:rgba(255,255,255,.65);font-size:.8rem;font-weight:500;transition:all .2s ease;user-select:none;}
+            .lang-pill-sm:hover{border-color:rgba(255,107,107,.6);color:#fff;background:rgba(255,107,107,.15);}
+            .lang-pill-sm.selected{background:linear-gradient(135deg,#ff6b6b,#ff5252);border-color:transparent;color:#fff;font-weight:700;box-shadow:0 4px 14px rgba(255,107,107,.4);}
+            </style>
+            {% endif %}
+
             <!-- 🧑‍🍳 Ask Chef AI Chat Panel -->
+
             {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
             <div class="mt-4">
                 {% include 'components/chef_chat.html' %}
@@ -464,6 +503,62 @@ window.__chefContext = {
 <script src="{{ url_for('static', filename='js/speech_output.js') }}"></script>
 <script src="{{ url_for('static', filename='js/chef_chat.js') }}"></script>
 <script src="{{ url_for('static', filename='js/speech_input.js') }}"></script>
+{% endif %}
+
+<!-- 🎥 Video generation JS -->
+{% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
+<script>
+// Language pill selection
+let _videoLang = 'english';
+document.querySelectorAll('#resultLangPills .lang-pill-sm').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('#resultLangPills .lang-pill-sm').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+    _videoLang = pill.dataset.lang;
+  });
+});
+
+function startVideoGeneration() {
+  const btn = document.getElementById('generateVideoBtn');
+  const msg = document.getElementById('videoGenMessage');
+  if (!btn) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i> Starting…';
+  if (msg) msg.textContent = 'Sending recipe to the video engine…';
+
+  const recipeData = {
+    food_name:    {{ title[0]|tojson }},
+    ingredients:  {{ ingredients[0]|tojson }},
+    recipe_steps: {{ recipe[0]|tojson }},
+    language:     _videoLang,
+  };
+
+  fetch('/video/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(recipeData),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.job_id) {
+      // Store recipe data so the result page can offer "Generate Again"
+      sessionStorage.setItem('videoRecipeData_' + data.job_id, JSON.stringify(recipeData));
+      window.location.href = data.redirect_url;
+    } else {
+      if (msg) msg.textContent = 'Error: ' + (data.error || 'Unknown error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-film me-2"></i>🎥 Generate Cooking Video';
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    if (msg) msg.textContent = 'Network error. Please try again.';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-film me-2"></i>🎥 Generate Cooking Video';
+  });
+}
+</script>
 {% endif %}
 {% endblock %}
 
