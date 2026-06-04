@@ -396,7 +396,12 @@ Example output:
         output_dir: str,
         progress_cb: Optional[Callable] = None,
     ) -> List[Optional[str]]:
-        """Generate per-step MP3 files using TTSService."""
+        """
+        Generate per-step MP3 files using TTSService.
+
+        Raises TTSService.AudioGenerationError if 0 out of N steps succeed.
+        Callers (generate_video) must catch this and surface it to the user.
+        """
         from Foodimg2Ing.services.tts_service import TTSService  # noqa: PLC0415
 
         svc = TTSService()
@@ -596,7 +601,17 @@ Example output:
             pct = 22 + int(18 * current / total)
             _progress(f"Generating voice... step {current}/{total}", pct)
 
-        audio_paths_raw = self.generate_audio(narration, language, output_dir, _audio_progress)
+        try:
+            audio_paths_raw = self.generate_audio(narration, language, output_dir, _audio_progress)
+        except Exception as audio_exc:
+            # AudioGenerationError or any unexpected TTS failure
+            logger.error(f"Audio generation failed: {audio_exc}")
+            raise RuntimeError(
+                f"Audio generation failed — {audio_exc}. "
+                "Video was NOT built to avoid a silent video. "
+                "Please check edge-tts and gTTS installation."
+            ) from audio_exc
+
         # Prepend None for intro slide, append None for outro slide
         audio_paths = [None] + audio_paths_raw + [None]
         _progress("Voice audio complete", 40)

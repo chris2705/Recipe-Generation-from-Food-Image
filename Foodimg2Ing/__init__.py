@@ -12,6 +12,8 @@ logging.basicConfig(
     datefmt='%H:%M:%S',
 )
 
+_startup_logger = logging.getLogger(__name__)
+
 # Load environment variables from .env file
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 
@@ -40,11 +42,29 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# --- Create database tables ---
+# --- Create database tables (new tables only) ---
 with app.app_context():
     from Foodimg2Ing.models import User, SavedRecipe  # noqa: F401
     from Foodimg2Ing.chat_models import ChatMessage  # noqa: F401
     db.create_all()
+
+# --- Run schema migration (adds missing columns to existing tables) ---
+try:
+    from migrate_video_columns import run_migration_from_app  # noqa: E402
+    run_migration_from_app(app)
+except Exception as _mig_err:
+    _startup_logger.error(f"Startup migration failed: {_mig_err}", exc_info=True)
+
+# --- Verify edge-tts availability ---
+try:
+    import edge_tts  # noqa: F401
+    _startup_logger.info("✅ edge-tts is available — video narration enabled.")
+except ImportError:
+    _startup_logger.error(
+        "❌ edge-tts is NOT installed in this environment (%s). "
+        "Run: pip install edge-tts   (inside the active venv)",
+        __import__('sys').executable,
+    )
 
 # --- Register blueprints & routes ---
 from Foodimg2Ing import routes  # noqa: F401, E402

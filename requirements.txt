@@ -13,4 +13,5 @@ python-dotenv
 flask-sqlalchemy
 flask-login
 edge-tts
+gtts
 moviepy

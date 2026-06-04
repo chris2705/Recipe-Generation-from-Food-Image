@@ -38,8 +38,12 @@
 
     // ── Event Bindings ────────────────────────────────────────────────
     function _bindEvents() {
-        // Send button click
-        sendBtn.addEventListener('click', _handleSend);
+        // Send button click — always prevent any default form behaviour
+        sendBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            _handleSend();
+        });
 
         // Enter key (Shift+Enter for newline is not needed for single-line input)
         inputField.addEventListener('keydown', function (e) {
@@ -54,7 +58,8 @@
 
         // Quick action buttons
         quickActions.forEach(function (btn) {
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
                 var prompt = this.getAttribute('data-prompt');
                 if (prompt && !isProcessing) {
                     inputField.value = prompt;
