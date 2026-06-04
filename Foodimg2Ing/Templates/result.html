@@ -7,478 +7,600 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    
-    <!-- Auto-saved / Redirection banners -->
-    {% if session.get('auto_saved_banner') %}
-    <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 p-4" role="alert" style="background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724;">
-        <div class="d-flex align-items-center">
-            <i class="fas fa-check-circle fs-3 me-3 text-success"></i>
-            <div>
-                <h5 class="alert-heading fw-bold mb-1 font-outfit">Recipe Saved Automatically!</h5>
-                <p class="mb-0 small">You were redirected here after signing in. Your recipe has been saved automatically to your Recipe Book.</p>
-            </div>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+{# ── Template variables ─────────────────────────────────────────────── #}
+{% set is_valid = title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
+{% set ing_count = ingredients[0]|length if ingredients and ingredients[0] else 0 %}
+{% set step_count = recipe[0]|length if recipe and recipe[0] else 0 %}
+{% set n = nutrition if (nutrition is defined and nutrition and nutrition.get('calories') is not none) else none %}
+{% if n %}
+  {% set score = n.get('health_score', 50) %}
+  {% if score >= 80 %}{% set score_cls = 'excellent' %}
+  {% elif score >= 65 %}{% set score_cls = 'good' %}
+  {% elif score >= 45 %}{% set score_cls = 'fair' %}
+  {% else %}{% set score_cls = 'poor' %}
+  {% endif %}
+  {% set circumference = 201 %}
+  {% set dash_offset = circumference - (score / 100 * circumference) %}
+{% endif %}
+{% set conf_pct = (confidence * 100)|round|int %}
+
+<div class="result-page py-4 py-md-5">
+<div class="container" style="max-width: 860px;">
+
+  {# ── Auto-save banners ─────────────────────────────────────────────── #}
+  {% if session.get('auto_saved_banner') %}
+  <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 p-4" role="alert" style="background:linear-gradient(135deg,#d4edda,#c3e6cb);color:#155724;">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-check-circle fs-3 me-3 text-success"></i>
+      <div>
+        <h5 class="alert-heading fw-bold mb-1 font-outfit">Recipe Saved Automatically!</h5>
+        <p class="mb-0 small">You were redirected here after signing in. Your recipe has been saved to your Recipe Book.</p>
+      </div>
     </div>
-    {% set _ = session.pop('auto_saved_banner', None) %}
-    {% elif session.get('auto_saved_banner_duplicate') %}
-    <div class="alert alert-info alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 p-4" role="alert" style="background: linear-gradient(135deg, #d1ecf1, #bee5eb); color: #0c5460;">
-        <div class="d-flex align-items-center">
-            <i class="fas fa-info-circle fs-3 me-3 text-info"></i>
-            <div>
-                <h5 class="alert-heading fw-bold mb-1 font-outfit">Recipe Already Saved</h5>
-                <p class="mb-0 small">You were redirected here after signing in. This recipe is already in your Recipe Book.</p>
-            </div>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% set _ = session.pop('auto_saved_banner', None) %}
+  {% elif session.get('auto_saved_banner_duplicate') %}
+  <div class="alert alert-info alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 p-4" role="alert" style="background:linear-gradient(135deg,#d1ecf1,#bee5eb);color:#0c5460;">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-info-circle fs-3 me-3 text-info"></i>
+      <div>
+        <h5 class="alert-heading fw-bold mb-1 font-outfit">Recipe Already Saved</h5>
+        <p class="mb-0 small">This recipe is already in your Recipe Book.</p>
+      </div>
     </div>
-    {% set _ = session.pop('auto_saved_banner_duplicate', None) %}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% set _ = session.pop('auto_saved_banner_duplicate', None) %}
+  {% endif %}
+
+  {# ── Back link ──────────────────────────────────────────────────────── #}
+  <a href="{{ url_for('generate') }}" class="result-back-link mb-4 d-inline-flex">
+    <i class="fas fa-arrow-left"></i> Back to Generator
+  </a>
+
+  {# ════════════════════════════════════════════════════════════════════
+     HERO CARD
+  ════════════════════════════════════════════════════════════════════ #}
+  <div class="recipe-hero-card mb-4">
+
+    {# ── Food image ───────────────────────────────────────────────────── #}
+    {% if img %}
+    <div class="hero-image-panel">
+      <img src="{{ url_for('static', filename=img) }}" alt="{{ title[0] }}">
+      <div class="hero-image-overlay"></div>
+    </div>
+    {% else %}
+    <div class="hero-image-no-img">
+      <i class="fas fa-utensils"></i>
+    </div>
     {% endif %}
-    
-    <div class="mb-4">
-        <a href="{{ url_for('generate') }}" class="text-decoration-none text-secondary hover-primary"><i class="fas fa-arrow-left me-2"></i> Back to Generator</a>
-    </div>
-    
-    <div class="row g-4">
-        <!-- Left Col: Image, Confidence, Source, Nutrition -->
-        <div class="col-lg-4">
-            <!-- Food Image Card -->
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 border">
-                <div class="image-wrapper position-relative">
-                    {% if img %}
-                    <img src="{{ url_for('static', filename=img) }}" alt="Analyzed Food Image" class="img-fluid w-100 object-fit-cover" style="max-height: 400px;">
-                    {% else %}
-                    <div class="bg-light w-100 d-flex align-items-center justify-content-center text-muted" style="height: 300px;">
-                        <i class="fas fa-image fs-1"></i>
-                    </div>
-                    {% endif %}
-                    <div class="position-absolute bottom-0 start-0 w-100 p-3 bg-gradient-dark text-white">
-                        <span class="badge bg-primary mb-1">Analyzed</span>
-                        <h4 class="mb-0 fw-bold font-outfit">{{ title[0] }}</h4>
-                    </div>
-                </div>
-                
-                <div class="card-body p-4 bg-white">
-                    <!-- Prediction Source Badge -->
-                    <div class="mb-3">
-                        <h6 class="fw-bold text-uppercase text-secondary small mb-2 font-outfit">Prediction Source</h6>
-                        {% if source == 'Gemini Vision AI' %}
-                        <span class="badge bg-info text-dark px-3 py-2 rounded-pill shadow-sm">
-                            <i class="fas fa-robot me-1"></i> {{ source }}
-                        </span>
-                        {% elif source == 'Gemini Fallback' %}
-                        <span class="badge px-3 py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;">
-                            <i class="fas fa-sync-alt me-1"></i> {{ source }}
-                        </span>
-                        {% elif 'Hybrid' in source or 'Second Opinion' in source %}
-                        <span class="badge px-3 py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, var(--primary-color), #667eea);">
-                            <i class="fas fa-brain me-1"></i> {{ source }}
-                        </span>
-                        {% elif 'Fallback' in source %}
-                        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">
-                            <i class="fas fa-exclamation-triangle me-1"></i> {{ source }}
-                        </span>
-                        {% else %}
-                        <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm">
-                            <i class="fas fa-check-circle me-1"></i> {{ source }}
-                        </span>
-                        {% endif %}
-                    </div>
 
-                    <!-- Confidence Meter -->
-                    <div class="mb-3">
-                        <h6 class="fw-bold text-uppercase text-secondary small mb-2 font-outfit">Model Confidence</h6>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="progress flex-grow-1" style="height: 10px; border-radius: 5px;">
-                                {% set conf_pct = (confidence * 100)|round|int %}
-                                {% if confidence >= 0.7 %}
-                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ conf_pct }}%;" aria-valuenow="{{ conf_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                {% elif confidence >= 0.4 %}
-                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ conf_pct }}%;" aria-valuenow="{{ conf_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                {% else %}
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ conf_pct }}%;" aria-valuenow="{{ conf_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                {% endif %}
-                            </div>
-                            <span class="fw-bold small text-dark">{{ conf_pct }}%</span>
-                        </div>
-                    </div>
+    <div class="hero-info-panel">
 
-                    <hr class="my-3">
+      {# Source badge #}
+      {% if source == 'Gemini Vision AI' %}
+      <span class="hero-source-badge gemini-vision"><i class="fas fa-robot"></i> {{ source }}</span>
+      {% elif 'Hybrid' in source or 'Second Opinion' in source %}
+      <span class="hero-source-badge hybrid"><i class="fas fa-brain"></i> {{ source }}</span>
+      {% elif 'Fallback' in source or source == 'Gemini Fallback' %}
+      <span class="hero-source-badge fallback"><i class="fas fa-sync-alt"></i> {{ source }}</span>
+      {% else %}
+      <span class="hero-source-badge local"><i class="fas fa-check-circle"></i> {{ source }}</span>
+      {% endif %}
 
-                    <h6 class="fw-bold mb-3 font-outfit text-uppercase text-secondary small">AI Insights</h6>
-                    
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 border">
-                                <i class="fas fa-clock text-info mb-2 fs-4"></i>
-                                <div class="small fw-semibold text-dark">Cooking Time</div>
-                                <div class="text-secondary font-outfit fw-bold" style="font-size: 0.85rem;">{{ cooking_time }}</div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 border">
-                                <i class="fas fa-users text-success mb-2 fs-4"></i>
-                                <div class="small fw-semibold text-dark">Servings</div>
-                                <div class="text-secondary font-outfit fw-bold" style="font-size: 0.85rem;">{{ servings }}</div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="insight-box rounded-3 p-3 text-center h-100 border" style="background: linear-gradient(135deg, #fff5f0, #fff);">
-                                <i class="fas fa-fire-alt text-warning mb-2 fs-4"></i>
-                                <div class="small fw-semibold text-dark">Calories</div>
-                                <div style="font-size: 0.85rem; font-weight: 800; color: #FF6B35;">
-                                    {% if nutrition and nutrition.get('calories') %}{{ nutrition.calories }} kcal{% else %}Estimated{% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="insight-box rounded-3 p-3 text-center h-100 border" style="background: linear-gradient(135deg, #f0fdf4, #fff);">
-                                <i class="fas fa-heartbeat text-success mb-2 fs-4"></i>
-                                <div class="small fw-semibold text-dark">Health Score</div>
-                                <div style="font-size: 0.85rem; font-weight: 800; color: #4CAF82;">
-                                    {% if nutrition and nutrition.get('health_score') %}{{ nutrition.health_score }}/100{% else %}Estimated{% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Nutrition Card in Left Column -->
-            {% include 'components/nutrition_card.html' %}
+      {# Title #}
+      <h1 class="hero-title">{{ title[0] }}</h1>
+      <p class="hero-subtitle"><i class="fas fa-magic text-primary me-1"></i> AI-generated recipe from your image</p>
+
+      {# Confidence #}
+      <div class="confidence-row">
+        <span class="confidence-label">Confidence</span>
+        <div class="confidence-track">
+          <div class="confidence-fill {% if confidence >= 0.7 %}high{% elif confidence >= 0.4 %}medium{% else %}low{% endif %}"
+               style="width: 0%;" data-width="{{ conf_pct }}%"></div>
         </div>
+        <span class="confidence-pct">{{ conf_pct }}%</span>
+      </div>
 
-        <!-- Right Col: Recipe Title, Ingredients & Instructions -->
-        <div class="col-lg-8">
-            {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
-            
-            <!-- Recipe Title Header -->
-            <div class="mb-4">
-                <h1 class="display-4 fw-extrabold font-outfit text-dark mb-2 text-capitalize" style="letter-spacing: -1.5px; font-weight: 800;">{{ title[0] }}</h1>
-                <p class="text-muted"><i class="fas fa-magic text-primary me-2"></i>AI-generated custom recipe tailored to your image analysis</p>
+      {# Action buttons #}
+      {% if is_valid %}
+      <div class="hero-actions">
+        <button class="hero-btn hero-btn-save" id="hero-save-btn">
+          <i class="fas fa-heart" id="hero-save-icon"></i>
+          <span id="hero-save-label">Save Recipe</span>
+        </button>
+        <button class="hero-btn hero-btn-video" onclick="openAccSection('acc-video')">
+          <i class="fas fa-film"></i> Generate Video
+        </button>
+        <button class="hero-btn hero-btn-chef" onclick="openAccSection('acc-chef')">
+          <i class="fas fa-robot"></i> Ask Chef AI
+        </button>
+        <button class="hero-btn hero-btn-share" onclick="shareRecipe()" title="Share recipe">
+          <i class="fas fa-share-alt"></i>
+        </button>
+      </div>
+      <div id="hero-save-message" class="save-message-inline mt-2"></div>
+      {% endif %}
+
+      {# Quick stats row #}
+      {% if is_valid %}
+      <div class="quick-stats-row">
+        <div class="qs-card">
+          <div class="qs-icon">⏱️</div>
+          <div class="qs-value">{{ cooking_time if cooking_time else '~30 min' }}</div>
+          <div class="qs-label">Cook Time</div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-icon">👥</div>
+          <div class="qs-value">{{ servings if servings else '2–3' }}</div>
+          <div class="qs-label">Servings</div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-icon">🔥</div>
+          <div class="qs-value">{% if n and n.get('calories') %}{{ n.calories }}{% else %}~{% endif %}</div>
+          <div class="qs-label">Calories</div>
+        </div>
+        <div class="qs-card">
+          <div class="qs-icon">❤️</div>
+          <div class="qs-value">{% if n and n.get('health_score') %}{{ n.health_score }}{% else %}—{% endif %}</div>
+          <div class="qs-label">Health</div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>{# /hero-info-panel #}
+  </div>{# /recipe-hero-card #}
+
+  {# ════════════════════════════════════════════════════════════════════
+     VALID RECIPE: ACCORDION SECTIONS
+  ════════════════════════════════════════════════════════════════════ #}
+  {% if is_valid %}
+
+  <div class="result-accordion" id="result-accordion">
+
+    {# ── SECTION 1: Ingredients ─────────────────────────────────────── #}
+    <div class="acc-section acc-open" id="acc-ingredients" data-acc>
+      <div class="acc-header" onclick="toggleAcc('acc-ingredients')" role="button" aria-expanded="true">
+        <div class="acc-header-left">
+          <span class="acc-icon">🥗</span>
+          <div>
+            <div class="acc-title">Ingredients</div>
+            <div class="acc-subtitle">All you need to make this dish</div>
+          </div>
+        </div>
+        <div class="acc-header-right">
+          <span class="acc-count-badge">{{ ing_count }} items</span>
+          <div class="acc-chevron">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <div class="acc-body-content">
+            <div class="d-flex flex-wrap gap-2">
+              {% for item in ingredients[0] %}
+              <span class="ingredient-chip">
+                <i class="fas fa-check-circle" style="font-size:0.65rem;"></i> {{ item }}
+              </span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── SECTION 2: Cooking Instructions ───────────────────────────── #}
+    <div class="acc-section" id="acc-instructions" data-acc>
+      <div class="acc-header" onclick="toggleAcc('acc-instructions')" role="button" aria-expanded="false">
+        <div class="acc-header-left">
+          <span class="acc-icon">👨‍🍳</span>
+          <div>
+            <div class="acc-title">Cooking Instructions</div>
+            <div class="acc-subtitle">Step-by-step guide</div>
+          </div>
+        </div>
+        <div class="acc-header-right">
+          <span class="acc-count-badge">{{ step_count }} steps</span>
+          <div class="acc-chevron">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <div class="acc-body-content">
+            <div>
+              {% for step in recipe[0] %}
+              <div class="step-item">
+                <div class="step-num">{{ loop.index }}</div>
+                <div class="step-text">{{ step }}</div>
+              </div>
+              {% endfor %}
             </div>
 
-            <!-- Ingredients Card -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4 border">
-                <div class="card-body p-4 p-md-5">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h3 class="fw-bold font-outfit mb-0"><i class="fas fa-shopping-basket text-primary me-2"></i> Predicted Ingredients</h3>
-                        <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="window.print()"><i class="fas fa-print"></i></button>
-                    </div>
-                    
-                    <div class="ingredients-container d-flex flex-wrap gap-2">
-                        {% for item in ingredients[0] %}
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-2 rounded-pill shadow-sm">
-                            <i class="fas fa-check-circle me-1 small"></i> {{ item }}
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Instructions Card -->
-            <div class="card border-0 shadow-sm rounded-4 border">
-                <div class="card-body p-4 p-md-5">
-                    <h3 class="fw-bold font-outfit mb-4"><i class="fas fa-list-ol text-primary me-2"></i> Cooking Instructions</h3>
-                    
-                    <div class="recipe-steps">
-                        {% for step in recipe[0] %}
-                        <div class="step-card bg-light rounded-4 p-4 mb-3 position-relative border shadow-sm transition-all hover-lift-sm">
-                            <div class="position-absolute top-0 start-0 translate-middle ms-4 mt-4 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 35px; height: 35px; font-weight: bold;">
-                                {{ loop.index }}
-                            </div>
-                            <div class="ms-4 ps-2">
-                                <p class="mb-0 text-dark fs-5">{{ step }}</p>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Second Opinion: Gemini Result Side-by-Side -->
+            {# Gemini Second Opinion (nested) #}
             {% if gemini_result %}
-            <div class="mt-5 pt-4 border-top">
-                <h4 class="fw-bold mb-4 text-muted">
-                    <i class="fas fa-robot text-info me-2"></i> Gemini Vision — Second Opinion
-                </h4>
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden border" style="border-left: 4px solid #0dcaf0 !important;">
-                    <div class="card-body p-4 p-md-5">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="badge bg-info text-dark px-3 py-2 rounded-pill me-3">
-                                <i class="fas fa-robot me-1"></i> Gemini Vision AI
-                            </span>
-                            <h4 class="fw-bold font-outfit mb-0">{{ gemini_result.title[0] }}</h4>
-                        </div>
-
-                        <h6 class="fw-bold mb-2 mt-4">Ingredients:</h6>
-                        <div class="d-flex flex-wrap gap-2 mb-4">
-                            {% for item in gemini_result.ingredients[0] %}
-                            <span class="badge bg-info-subtle text-info border border-info-subtle fs-6 px-3 py-2 rounded-pill">
-                                {{ item }}
-                            </span>
-                            {% endfor %}
-                        </div>
-
-                        <h6 class="fw-bold mb-2">Instructions:</h6>
-                        <ol class="ps-3 text-muted">
-                            {% for step in gemini_result.recipe[0] %}
-                            <li class="mb-2">{{ step }}</li>
-                            {% endfor %}
-                        </ol>
-
-                        {% if gemini_result.cooking_time %}
-                        <div class="d-flex gap-3 mt-3">
-                            <span class="badge bg-light text-dark border px-3 py-2"><i class="fas fa-clock me-1"></i> {{ gemini_result.cooking_time }}</span>
-                            <span class="badge bg-light text-dark border px-3 py-2"><i class="fas fa-users me-1"></i> {{ gemini_result.servings }}</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
+            <div class="second-opinion-card mt-4">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge bg-info text-dark rounded-pill px-3 py-1">
+                  <i class="fas fa-robot me-1"></i> Gemini Vision AI
+                </span>
+                <h5 class="fw-bold mb-0 font-outfit">{{ gemini_result.title[0] }}</h5>
+              </div>
+              <h6 class="fw-bold text-secondary small text-uppercase mb-2">Alternative Ingredients</h6>
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                {% for item in gemini_result.ingredients[0] %}
+                <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill">{{ item }}</span>
+                {% endfor %}
+              </div>
+              <h6 class="fw-bold text-secondary small text-uppercase mb-2">Alternative Instructions</h6>
+              <ol class="ps-3 text-muted" style="font-size:0.9rem;">
+                {% for step in gemini_result.recipe[0] %}
+                <li class="mb-2">{{ step }}</li>
+                {% endfor %}
+              </ol>
+              {% if gemini_result.cooking_time %}
+              <div class="d-flex gap-2 mt-2">
+                <span class="badge bg-light text-dark border px-3 py-1"><i class="fas fa-clock me-1"></i>{{ gemini_result.cooking_time }}</span>
+                <span class="badge bg-light text-dark border px-3 py-1"><i class="fas fa-users me-1"></i>{{ gemini_result.servings }}</span>
+              </div>
+              {% endif %}
             </div>
             {% endif %}
 
-            <!-- Alternative Local Recipe -->
+            {# Alternative local recipe #}
             {% if title|length > 1 and title[1] is defined and title[1] != "Not a valid recipe!" %}
-            <div class="mt-5 pt-4 border-top">
-                <h4 class="fw-bold mb-4 text-muted"><i class="fas fa-lightbulb text-warning me-2"></i> Alternative Recipe Suggestion</h4>
-                <div class="accordion shadow-sm rounded-4" id="accordionAlt">
-                    <div class="accordion-item border-0 rounded-4 overflow-hidden border">
-                        <h2 class="accordion-header" id="headingOne">
-                            <button class="accordion-button collapsed bg-light fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                                {{ title[1] }}
-                            </button>
-                        </h2>
-                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionAlt">
-                            <div class="accordion-body p-4">
-                                <h6 class="fw-bold mb-2">Ingredients:</h6>
-                                <p class="text-muted">{{ ', '.join(ingredients[1]) }}</p>
-                                
-                                <h6 class="fw-bold mt-4 mb-2">Instructions:</h6>
-                                <ol class="ps-3 text-muted">
-                                    {% for step in recipe[1] %}
-                                    <li class="mb-2">{{ step }}</li>
-                                    {% endfor %}
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
+            <div class="alt-recipe-card mt-3">
+              <div class="alt-recipe-header" onclick="toggleAltRecipe(this)">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fas fa-lightbulb text-warning"></i>
+                  <span class="fw-semibold" style="font-size:0.9rem;">Alternative: {{ title[1] }}</span>
                 </div>
+                <i class="fas fa-chevron-down text-muted" style="font-size:0.75rem;transition:transform 0.3s;"></i>
+              </div>
+              <div class="alt-recipe-body">
+                <div class="alt-recipe-body-inner">
+                  <div class="alt-recipe-content">
+                    <p class="text-muted small mb-2"><strong>Ingredients:</strong> {{ ', '.join(ingredients[1]) }}</p>
+                    <ol class="ps-3 text-muted small">
+                      {% for step in recipe[1] %}
+                      <li class="mb-1">{{ step }}</li>
+                      {% endfor %}
+                    </ol>
+                  </div>
+                </div>
+              </div>
             </div>
             {% endif %}
 
-            {% else %}
-            <!-- Error State -->
-            <div class="card border-0 shadow-sm rounded-4 p-5 text-center border">
-                <i class="fas fa-exclamation-triangle text-warning display-1 mb-4"></i>
-                <h2 class="fw-bold">Oh no!</h2>
-                <h4 class="text-muted">{{ recipe[0] }}</h4>
-                <p class="mt-4">We couldn't recognize a valid food item in the image. Please try uploading another photo.</p>
-                <a href="{{ url_for('generate') }}" class="btn btn-primary rounded-pill px-4 py-2 mt-3">Try Again</a>
-            </div>
-            {% endif %}
+          </div>
         </div>
+      </div>
     </div>
 
-    <!-- Below Section: Actions & Chatbot -->
-    {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
-    <div class="row g-4 mt-4">
-        <!-- Save Recipe Card -->
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 save-recipe-card border">
-                <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
-                    <div class="mb-2 text-primary fs-3"><i class="fas fa-bookmark"></i></div>
-                    <h5 class="fw-bold font-outfit text-dark mb-1">Save to Cookbook</h5>
-                    <p class="small text-secondary mb-3">Store this recipe securely in your personal Recipe Book to access it anytime.</p>
-                    <button type="button" class="btn btn-save-recipe btn-lg rounded-pill px-5 fw-bold shadow-sm hover-lift" id="save-recipe-btn">
-                        <span class="save-default">
-                            <i class="fas fa-heart me-2"></i>Save Recipe
-                        </span>
-                        <span class="save-loading d-none">
-                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>Saving...
-                        </span>
-                        <span class="save-done d-none">
-                            <i class="fas fa-check me-2"></i>Saved!
-                        </span>
-                    </button>
-                    <div id="save-message" class="mt-3 d-none"></div>
-                </div>
+    {# ── SECTION 3: Nutrition Analysis ─────────────────────────────── #}
+    {% if n %}
+    <div class="acc-section" id="acc-nutrition" data-acc>
+      <div class="acc-header" onclick="toggleAcc('acc-nutrition')" role="button" aria-expanded="false">
+        <div class="acc-header-left">
+          <span class="acc-icon">📊</span>
+          <div>
+            <div class="acc-title">Nutrition Analysis</div>
+            <div class="acc-subtitle">
+              {% if n.get('calories') %}{{ n.calories }} kcal per serving{% else %}Macro breakdown{% endif %}
             </div>
+          </div>
         </div>
-
-        <!-- Video Generation Card -->
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 border" id="video-gen-card" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 1.5px solid rgba(255,107,107,0.15) !important;">
-                <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
-                    <div class="mb-2"><span style="font-size:2rem;">🎬</span></div>
-                    <h5 class="fw-bold font-outfit mb-1" style="color:#ff9a9e;">AI Cooking Video</h5>
-                    <p class="small mb-3 text-light text-opacity-50">Generate a step-by-step narrated video cooking guide in your language.</p>
-                    <div class="mb-3">
-                        <div class="d-flex flex-wrap gap-2 justify-content-center" id="resultLangPills">
-                            <span class="lang-pill-sm selected" data-lang="english">🇬🇧 English</span>
-                            <span class="lang-pill-sm" data-lang="malayalam">🇮🇳 Malayalam</span>
-                            <span class="lang-pill-sm" data-lang="hindi">🇮🇳 Hindi</span>
-                            <span class="lang-pill-sm" data-lang="tamil">🇮🇳 Tamil</span>
-                            <span class="lang-pill-sm" data-lang="telugu">🇮🇳 Telugu</span>
-                            <span class="lang-pill-sm" data-lang="kannada">🇮🇳 Kannada</span>
-                        </div>
-                    </div>
-                    <button class="btn fw-bold rounded-pill px-4 py-2 shadow-sm"
-                            id="generateVideoBtn"
-                            style="background:linear-gradient(135deg,#ff6b6b,#ee5a6f);color:#fff;border:none;font-size:1rem;transition:all .3s ease;"
-                            onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(255,107,107,0.45)'"
-                            onmouseout="this.style.transform='';this.style.boxShadow=''"
-                            onclick="startVideoGeneration()">
-                        <i class="fas fa-film me-2"></i>Generate Video
-                    </button>
-                    <div id="videoGenMessage" class="mt-2 small text-light text-opacity-40"></div>
-                </div>
+        <div class="acc-header-right">
+          <span class="acc-count-badge">
+            {% if n.get('engine') == 'gemini' %}
+            <i class="fas fa-robot me-1"></i> Gemini
+            {% else %}
+            <i class="fas fa-flask me-1"></i> Estimated
+            {% endif %}
+          </span>
+          <div class="acc-chevron">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <div class="acc-body-content">
+            {# Macro cards #}
+            <div class="nutrition-mini-grid">
+              {% set macros = [
+                ('🔥', n.get('calories','—'), 'kcal', 'Calories'),
+                ('💪', n.get('protein','—'), 'g', 'Protein'),
+                ('🍞', n.get('carbs','—'), 'g', 'Carbs'),
+                ('🥑', n.get('fat','—'), 'g', 'Fat'),
+                ('🌿', n.get('fiber','—'), 'g', 'Fiber'),
+                ('🍬', n.get('sugar','—'), 'g', 'Sugar'),
+                ('🧂', n.get('sodium','—'), 'mg', 'Sodium'),
+              ] %}
+              {% for emoji, val, unit, name in macros %}
+              <div class="nmg-card">
+                <div class="nmg-emoji">{{ emoji }}</div>
+                <div class="nmg-val">{{ val }}</div>
+                <div class="nmg-unit">{{ unit }}</div>
+                <div class="nmg-name">{{ name }}</div>
+              </div>
+              {% endfor %}
             </div>
-            <style>
-            .lang-pill-sm{cursor:pointer;padding:.3rem .8rem;border-radius:999px;border:1.5px solid rgba(255,107,107,.3);background:rgba(255,107,107,.07);color:rgba(255,255,255,.65);font-size:.8rem;font-weight:500;transition:all .2s ease;user-select:none;}
-            .lang-pill-sm:hover{border-color:rgba(255,107,107,.6);color:#fff;background:rgba(255,107,107,.15);}
-            .lang-pill-sm.selected{background:linear-gradient(135deg,#ff6b6b,#ff5252);border-color:transparent;color:#fff;font-weight:700;box-shadow:0 4px 14px rgba(255,107,107,.4);}
-            </style>
-        </div>
 
-        <!-- Chatbot Panel full-width -->
-        <div class="col-12 mt-4">
-            {% include 'components/chef_chat.html' %}
+            {# Macro bars #}
+            <div class="macro-bar-group">
+              {% set bars = [
+                ('cal',  '🔥 Calories', n.get('calories',0), 2000, 'kcal'),
+                ('pro',  '💪 Protein',  n.get('protein',0),  50,   'g / 50g'),
+                ('carb', '🍞 Carbs',    n.get('carbs',0),    275,  'g / 275g'),
+                ('fat',  '🥑 Fat',      n.get('fat',0),      78,   'g / 78g'),
+              ] %}
+              {% for cls, label, val, dv, unit in bars %}
+              {% set pct = [(( val / dv ) * 100)|round|int, 100]|min %}
+              <div class="macro-bar-item">
+                <div class="macro-bar-row">
+                  <span>{{ label }}</span>
+                  <span>{{ val }} {{ unit }}</span>
+                </div>
+                <div class="macro-track macro-bar-track">
+                  <div class="macro-bar-fill {{ cls }}" style="width:0%;" data-width="{{ pct }}%"></div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            {# FDA Label toggle #}
+            <div class="text-center mt-3">
+              <button class="nutrition-label-toggle-btn" onclick="toggleNutritionLabel()" id="nl-toggle-btn">
+                <i class="fas fa-tag me-1"></i> View Nutrition Label
+              </button>
+              <div class="nutrition-label-box" id="nutrition-label-box">
+                <div class="nl-title">Nutrition Facts</div>
+                <div class="nl-serving">{{ n.get('servings', 2) }} serving{{ 's' if n.get('servings', 2) != 1 else '' }} per recipe</div>
+                <div class="nl-serving"><strong>Serving Size:</strong> 1 portion</div>
+                <div class="nl-calories-row">
+                  <div><div class="nl-calories-label">Calories</div></div>
+                  <div class="nl-calories-value">{{ n.get('calories', 0) }}</div>
+                </div>
+                <div class="nl-daily-label">% Daily Value*</div>
+                <div class="nl-row"><strong>Total Fat</strong> {{ n.get('fat',0) }}g <span class="ms-auto">{{ [((n.get('fat',0)/78)*100)|round|int,999]|min }}%</span></div>
+                <div class="nl-row nl-row-indent">Saturated Fat ~{{ (n.get('fat',0)*0.3)|round(1) }}g <span class="ms-auto">~{{ [((n.get('fat',0)*0.3/20)*100)|round|int,999]|min }}%</span></div>
+                <div class="nl-row"><strong>Sodium</strong> {{ n.get('sodium',0) }}mg <span class="ms-auto">{{ [((n.get('sodium',0)/2300)*100)|round|int,999]|min }}%</span></div>
+                <div class="nl-row"><strong>Total Carbohydrate</strong> {{ n.get('carbs',0) }}g <span class="ms-auto">{{ [((n.get('carbs',0)/275)*100)|round|int,999]|min }}%</span></div>
+                <div class="nl-row nl-row-indent">Dietary Fiber {{ n.get('fiber',0) }}g <span class="ms-auto">{{ [((n.get('fiber',0)/28)*100)|round|int,999]|min }}%</span></div>
+                <div class="nl-row nl-row-indent">Total Sugars {{ n.get('sugar',0) }}g</div>
+                <div class="nl-row"><strong>Protein</strong> {{ n.get('protein',0) }}g</div>
+                <div class="nl-footer">* Percent Daily Values based on a 2,000 calorie diet. Values are AI-estimated.</div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
     {% endif %}
-</div>
 
-<!-- Login Required Modal -->
+    {# ── SECTION 4: Health Insights ────────────────────────────────── #}
+    {% if n %}
+    <div class="acc-section" id="acc-health" data-acc>
+      <div class="acc-header" onclick="toggleAcc('acc-health')" role="button" aria-expanded="false">
+        <div class="acc-header-left">
+          <span class="acc-icon">❤️</span>
+          <div>
+            <div class="acc-title">Health Insights</div>
+            <div class="acc-subtitle">
+              Score: {{ score }}/100 · {{ n.get('health_label','Good') }}
+            </div>
+          </div>
+        </div>
+        <div class="acc-header-right">
+          {% set tags = n.get('diet_tags', []) %}
+          <span class="acc-count-badge">{{ tags|length }} diet tags</span>
+          <div class="acc-chevron">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <div class="acc-body-content">
+
+            {# Health Score display #}
+            <div class="health-score-display {% if score_cls in ('fair','poor') %}{{ score_cls }}{% endif %} mb-3">
+              <div class="health-ring-wrap">
+                <svg viewBox="0 0 80 80">
+                  <circle class="health-ring-bg" cx="40" cy="40" r="32"/>
+                  <circle class="health-ring-fill {% if score_cls in ('fair','poor') %}{{ score_cls }}{% endif %}"
+                          cx="40" cy="40" r="32"
+                          stroke-dasharray="{{ circumference }}"
+                          stroke-dashoffset="{{ circumference }}"
+                          data-dashoffset="{{ dash_offset }}"
+                          id="acc-health-ring-fill"/>
+                </svg>
+                <div class="health-ring-num {% if score_cls in ('fair','poor') %}{{ score_cls }}{% endif %}">{{ score }}</div>
+              </div>
+              <div class="health-info-col">
+                <h4>{{ n.get('health_label','Good') }}</h4>
+                <p>
+                  {% if n.get('engine') == 'gemini' %}
+                  <i class="fas fa-robot me-1"></i> Gemini AI Analysis
+                  {% else %}
+                  <i class="fas fa-flask me-1"></i> Ingredient-based estimation
+                  {% endif %}
+                </p>
+                <p class="mt-1 text-muted" style="font-size:0.8rem;">{{ n.get('servings',2) }} servings per recipe</p>
+              </div>
+            </div>
+
+            {# Diet Tags #}
+            {% if tags %}
+            <h6 class="fw-bold text-secondary small text-uppercase mb-2">Diet Profile</h6>
+            <div class="diet-tags-wrap-acc mb-3">
+              {% for tag_obj in tags %}
+              <span class="diet-tag">{{ tag_obj.emoji }} {{ tag_obj.tag }}</span>
+              {% endfor %}
+            </div>
+            {% elif n.get('diet_tag_names') %}
+            <div class="diet-tags-wrap-acc mb-3">
+              {% for tag_name in n.get('diet_tag_names', []) %}
+              <span class="diet-tag">{{ tag_name }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            {# Nutrition Summary text #}
+            {% if n.get('nutrition_summary') %}
+            <div class="p-3 bg-light rounded-3 border">
+              <h6 class="fw-bold small text-uppercase text-secondary mb-1">Nutrition Summary</h6>
+              <p class="text-muted small mb-0">{{ n.nutrition_summary }}</p>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── SECTION 5: AI Cooking Video ──────────────────────────────── #}
+    <div class="acc-section" id="acc-video" data-acc>
+      <div class="acc-header" onclick="toggleAcc('acc-video')" role="button" aria-expanded="false">
+        <div class="acc-header-left">
+          <span class="acc-icon">🎬</span>
+          <div>
+            <div class="acc-title">AI Cooking Video</div>
+            <div class="acc-subtitle">Generate a narrated step-by-step tutorial</div>
+          </div>
+        </div>
+        <div class="acc-header-right">
+          <span class="acc-count-badge">6 languages</span>
+          <div class="acc-chevron">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <div class="acc-body-content">
+            <div class="video-gen-panel">
+              <h5><i class="fas fa-film me-2"></i> Generate Your Cooking Tutorial</h5>
+              <p>Choose a language and create a beautifully narrated video recipe with AI voiceover.</p>
+
+              <div class="lang-pills-wrap" id="accLangPills">
+                <span class="lang-pill selected" data-lang="english">🇬🇧 English</span>
+                <span class="lang-pill" data-lang="malayalam">🇮🇳 Malayalam</span>
+                <span class="lang-pill" data-lang="hindi">🇮🇳 Hindi</span>
+                <span class="lang-pill" data-lang="tamil">🇮🇳 Tamil</span>
+                <span class="lang-pill" data-lang="telugu">🇮🇳 Telugu</span>
+                <span class="lang-pill" data-lang="kannada">🇮🇳 Kannada</span>
+              </div>
+
+              <button class="generate-video-btn" id="accGenerateVideoBtn" onclick="startVideoGeneration()">
+                <i class="fas fa-film"></i> Generate Video
+              </button>
+              <div id="accVideoGenMessage" class="mt-2 small" style="color:rgba(255,255,255,0.45);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── SECTION 6: Ask Chef AI ────────────────────────────────────── #}
+    <div class="acc-section" id="acc-chef" data-acc>
+      <div class="acc-header" onclick="toggleAcc('acc-chef')" role="button" aria-expanded="false">
+        <div class="acc-header-left">
+          <span class="acc-icon">🤖</span>
+          <div>
+            <div class="acc-title">Ask Chef AI</div>
+            <div class="acc-subtitle">Get personalized cooking advice</div>
+          </div>
+        </div>
+        <div class="acc-header-right">
+          <span class="acc-count-badge">AI Powered</span>
+          <div class="acc-chevron">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <div class="acc-body-content" id="acc-chef-content">
+            {# Lazy placeholder — replaced with chatbot on first open #}
+            <div class="chef-lazy-placeholder" id="chef-lazy-placeholder">
+              <div class="chef-icon">🤖</div>
+              <p class="mb-0 fw-semibold" style="color:#374151;">Loading Chef AI…</p>
+              <p class="small" style="color:#9ca3af;">Your personal cooking assistant is ready</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>{# /result-accordion #}
+
+  {% else %}
+  {# ── Invalid / Error State ──────────────────────────────────────────── #}
+  <div class="result-error-card">
+    <i class="fas fa-exclamation-triangle text-warning display-1 mb-4"></i>
+    <h2 class="fw-bold">Couldn't Recognize Food</h2>
+    <h4 class="text-muted">{{ recipe[0] }}</h4>
+    <p class="mt-3 text-secondary">We couldn't identify a valid food item in the image. Please try another photo.</p>
+    <a href="{{ url_for('generate') }}" class="btn btn-primary rounded-pill px-5 py-2 mt-3 fw-bold">Try Again</a>
+  </div>
+  {% endif %}
+
+</div>{# /container #}
+</div>{# /result-page #}
+
+{# ── Login Required Modal ──────────────────────────────────────────────── #}
 {% include 'components/login_required_modal.html' %}
-
 {% endblock %}
 
+
 {% block extra_js %}
+
+{# ── Recipe data (Jinja → JS) ─────────────────────────────────────────── #}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const saveBtn = document.getElementById('save-recipe-btn');
-    if (!saveBtn) return;
-
-    const saveDefault = saveBtn.querySelector('.save-default');
-    const saveLoading = saveBtn.querySelector('.save-loading');
-    const saveDone = saveBtn.querySelector('.save-done');
-    const saveMessage = document.getElementById('save-message');
-
-    // Recipe data from template
-    const recipeData = {
-        food_name: {{ title[0]|tojson }},
-        ingredients: {{ ingredients[0]|tojson }},
-        recipe_steps: {{ recipe[0]|tojson }},
-        image_path: {{ img|tojson }},
-        prediction_source: {{ source|tojson }},
-        confidence: {{ confidence|tojson }},
-        cooking_time: {{ (cooking_time if cooking_time is defined else '')|tojson }},
-        servings: {{ (servings if servings is defined else '')|tojson }},
-        nutrition: {{ (nutrition if nutrition is defined and nutrition)|tojson if (nutrition is defined and nutrition) else 'null' }},
-        next_url: window.location.pathname + window.location.search
-    };
-
-    // Check if already saved on page load
-    fetch('/api/check-saved', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            food_name: recipeData.food_name,
-            image_path: recipeData.image_path
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.is_saved) {
-            markAsSaved();
-        }
-    })
-    .catch(() => {});
-
-    saveBtn.addEventListener('click', function() {
-        if (saveBtn.disabled) return;
-
-        // Show loading
-        saveDefault.classList.add('d-none');
-        saveLoading.classList.remove('d-none');
-        saveBtn.disabled = true;
-
-        fetch('/recipe-book/save', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(recipeData)
-        })
-        .then(r => r.json().then(data => ({status: r.status, data})))
-        .then(({status, data}) => {
-            saveLoading.classList.add('d-none');
-
-            if (status === 401 && data.login_required) {
-                // Not logged in — show modal
-                saveDefault.classList.remove('d-none');
-                saveBtn.disabled = false;
-                const modal = new bootstrap.Modal(document.getElementById('loginRequiredModal'));
-                modal.show();
-                return;
-            }
-
-            if (status === 409 && data.duplicate) {
-                // Already saved
-                showMessage(data.message, 'warning');
-                markAsSaved();
-                return;
-            }
-
-            if (data.success) {
-                showMessage(data.message, 'success');
-                markAsSaved();
-                return;
-            }
-
-            // Error
-            showMessage(data.error || 'Something went wrong.', 'danger');
-            saveDefault.classList.remove('d-none');
-            saveBtn.disabled = false;
-        })
-        .catch(() => {
-            saveLoading.classList.add('d-none');
-            saveDefault.classList.remove('d-none');
-            saveBtn.disabled = false;
-            showMessage('Network error. Please try again.', 'danger');
-        });
-    });
-
-    function markAsSaved() {
-        saveBtn.disabled = true;
-        saveDefault.classList.add('d-none');
-        saveLoading.classList.add('d-none');
-        saveDone.classList.remove('d-none');
-        saveBtn.classList.remove('btn-save-recipe');
-        saveBtn.classList.add('btn-saved');
-    }
-
-    function showMessage(text, type) {
-        saveMessage.className = 'mt-3 alert alert-' + type + ' py-2 rounded-3 small fw-semibold';
-        saveMessage.textContent = text;
-        saveMessage.classList.remove('d-none');
-        setTimeout(() => saveMessage.classList.add('d-none'), 5000);
-    }
-});
+const __recipeData = {
+  food_name:         {{ title[0]|tojson }},
+  ingredients:       {{ ingredients[0]|tojson }},
+  recipe_steps:      {{ recipe[0]|tojson }},
+  image_path:        {{ img|tojson }},
+  prediction_source: {{ source|tojson }},
+  confidence:        {{ confidence|tojson }},
+  cooking_time:      {{ (cooking_time if cooking_time is defined else '')|tojson }},
+  servings:          {{ (servings if servings is defined else '')|tojson }},
+  nutrition:         {{ (nutrition if nutrition is defined and nutrition)|tojson if (nutrition is defined and nutrition) else 'null' }},
+  next_url:          window.location.pathname + window.location.search,
+};
 </script>
 
-<!-- Chef AI Context & Scripts -->
-{% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
+{% if is_valid %}
+{# ── Chef AI context ──────────────────────────────────────────────────── #}
 <script>
 window.__chefContext = {
-    food_name: {{ title[0]|tojson }},
-    ingredients: {{ ingredients[0]|tojson }},
-    recipe_steps: {{ recipe[0]|tojson }},
-    nutrition: {{ (nutrition if nutrition is defined and nutrition)|tojson if (nutrition is defined and nutrition) else 'null' }},
-    prediction_source: {{ source|tojson }},
-    image_path: {{ img|tojson }},
-    result_id: {{ result_id|tojson }},
-    recipe_id: null
+  food_name:         {{ title[0]|tojson }},
+  ingredients:       {{ ingredients[0]|tojson }},
+  recipe_steps:      {{ recipe[0]|tojson }},
+  nutrition:         {{ (nutrition if nutrition is defined and nutrition)|tojson if (nutrition is defined and nutrition) else 'null' }},
+  prediction_source: {{ source|tojson }},
+  image_path:        {{ img|tojson }},
+  result_id:         {{ result_id|tojson }},
+  recipe_id:         null
 };
 </script>
 <script src="{{ url_for('static', filename='js/speech_output.js') }}"></script>
@@ -486,60 +608,302 @@ window.__chefContext = {
 <script src="{{ url_for('static', filename='js/speech_input.js') }}"></script>
 {% endif %}
 
-<!-- 🎥 Video generation JS -->
-{% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
+{# ════════════════════════════════════════════════════════════════════════
+   RESULT PAGE JAVASCRIPT
+════════════════════════════════════════════════════════════════════════ #}
 <script>
-// Language pill selection
+/* ────────────────────────────────────────────────────────────────────────
+   Accordion system
+──────────────────────────────────────────────────────────────────────── */
+function toggleAcc(id) {
+  const section = document.getElementById(id);
+  if (!section) return;
+  const isOpen = section.classList.contains('acc-open');
+
+  if (isOpen) {
+    section.classList.remove('acc-open');
+    section.querySelector('.acc-header').setAttribute('aria-expanded', 'false');
+  } else {
+    section.classList.add('acc-open');
+    section.querySelector('.acc-header').setAttribute('aria-expanded', 'true');
+    // Lazy init for Chef AI
+    if (id === 'acc-chef') initChefAILazy();
+    // Animate nutrition items when nutrition section opens
+    if (id === 'acc-nutrition') animateNutritionBars();
+    if (id === 'acc-health')    animateHealthRing();
+  }
+}
+
+function openAccSection(id) {
+  const section = document.getElementById(id);
+  if (!section) return;
+  if (!section.classList.contains('acc-open')) {
+    section.classList.add('acc-open');
+    section.querySelector('.acc-header').setAttribute('aria-expanded', 'true');
+    if (id === 'acc-chef') initChefAILazy();
+    if (id === 'acc-nutrition') animateNutritionBars();
+    if (id === 'acc-health')    animateHealthRing();
+  }
+  // Smooth scroll
+  setTimeout(() => {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Animate confidence bar on page load
+──────────────────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function () {
+  const fill = document.querySelector('.confidence-fill');
+  if (fill) {
+    const target = fill.getAttribute('data-width');
+    setTimeout(() => { fill.style.width = target; }, 200);
+  }
+});
+
+/* ────────────────────────────────────────────────────────────────────────
+   Animate nutrition progress bars (lazy – on section open)
+──────────────────────────────────────────────────────────────────────── */
+let _nutritionAnimated = false;
+function animateNutritionBars() {
+  if (_nutritionAnimated) return;
+  _nutritionAnimated = true;
+  document.querySelectorAll('#acc-nutrition .macro-bar-fill').forEach(bar => {
+    const w = bar.getAttribute('data-width');
+    if (w) setTimeout(() => { bar.style.width = w; }, 150);
+  });
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Animate health score ring (lazy – on section open)
+──────────────────────────────────────────────────────────────────────── */
+let _healthAnimated = false;
+function animateHealthRing() {
+  if (_healthAnimated) return;
+  _healthAnimated = true;
+  const ring = document.getElementById('acc-health-ring-fill');
+  if (ring) {
+    const offset = parseFloat(ring.getAttribute('data-dashoffset'));
+    setTimeout(() => { ring.style.strokeDashoffset = offset; }, 200);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Nutrition label toggle (from nutrition_card)
+──────────────────────────────────────────────────────────────────────── */
+function toggleNutritionLabel() {
+  const box = document.getElementById('nutrition-label-box');
+  const btn = document.getElementById('nl-toggle-btn');
+  if (!box) return;
+  box.classList.toggle('visible');
+  btn.innerHTML = box.classList.contains('visible')
+    ? '<i class="fas fa-times me-1"></i>Hide Nutrition Label'
+    : '<i class="fas fa-tag me-1"></i>View Nutrition Label';
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Alternative recipe toggle
+──────────────────────────────────────────────────────────────────────── */
+function toggleAltRecipe(header) {
+  const body = header.nextElementSibling;
+  const icon = header.querySelector('.fa-chevron-down');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if (icon) icon.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Save Recipe (Hero button)
+──────────────────────────────────────────────────────────────────────── */
+(function initSaveButton() {
+  const btn   = document.getElementById('hero-save-btn');
+  const icon  = document.getElementById('hero-save-icon');
+  const label = document.getElementById('hero-save-label');
+  const msg   = document.getElementById('hero-save-message');
+  if (!btn) return;
+
+  function markSaved() {
+    btn.disabled = true;
+    btn.classList.add('saved');
+    icon.className  = 'fas fa-check';
+    label.textContent = 'Saved!';
+  }
+
+  function showMsg(text, type) {
+    if (!msg) return;
+    msg.textContent = text;
+    msg.className = 'save-message-inline show ' + type;
+    setTimeout(() => msg.classList.remove('show'), 5000);
+  }
+
+  // Check saved state on load
+  fetch('/api/check-saved', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ food_name: __recipeData.food_name, image_path: __recipeData.image_path })
+  }).then(r => r.json()).then(d => { if (d.is_saved) markSaved(); }).catch(() => {});
+
+  btn.addEventListener('click', function () {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    icon.className = 'fas fa-circle-notch fa-spin';
+    label.textContent = 'Saving…';
+
+    fetch('/recipe-book/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(__recipeData)
+    })
+    .then(r => r.json().then(d => ({ status: r.status, d })))
+    .then(({ status, d }) => {
+      if (status === 401 && d.login_required) {
+        btn.disabled = false;
+        icon.className = 'fas fa-heart';
+        label.textContent = 'Save Recipe';
+        new bootstrap.Modal(document.getElementById('loginRequiredModal')).show();
+        return;
+      }
+      if (status === 409 && d.duplicate) { showMsg(d.message, 'warning'); markSaved(); return; }
+      if (d.success)  { showMsg(d.message, 'success'); markSaved(); return; }
+      showMsg(d.error || 'Something went wrong.', 'danger');
+      btn.disabled = false;
+      icon.className = 'fas fa-heart';
+      label.textContent = 'Save Recipe';
+    })
+    .catch(() => {
+      btn.disabled = false;
+      icon.className = 'fas fa-heart';
+      label.textContent = 'Save Recipe';
+      showMsg('Network error. Please try again.', 'danger');
+    });
+  });
+})();
+
+/* ────────────────────────────────────────────────────────────────────────
+   Share recipe
+──────────────────────────────────────────────────────────────────────── */
+function shareRecipe() {
+  const data = {
+    title: __recipeData.food_name + ' — AI Recipe',
+    text: 'Check out this recipe for ' + __recipeData.food_name + '!',
+    url: window.location.href,
+  };
+  if (navigator.share) {
+    navigator.share(data).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => alert('Link copied to clipboard!'))
+      .catch(() => {});
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Video generation — language pill selection
+──────────────────────────────────────────────────────────────────────── */
 let _videoLang = 'english';
-document.querySelectorAll('#resultLangPills .lang-pill-sm').forEach(pill => {
+document.querySelectorAll('#accLangPills .lang-pill').forEach(pill => {
   pill.addEventListener('click', () => {
-    document.querySelectorAll('#resultLangPills .lang-pill-sm').forEach(p => p.classList.remove('selected'));
+    document.querySelectorAll('#accLangPills .lang-pill').forEach(p => p.classList.remove('selected'));
     pill.classList.add('selected');
     _videoLang = pill.dataset.lang;
   });
 });
 
 function startVideoGeneration() {
-  const btn = document.getElementById('generateVideoBtn');
-  const msg = document.getElementById('videoGenMessage');
+  const btn = document.getElementById('accGenerateVideoBtn');
+  const msg = document.getElementById('accVideoGenMessage');
   if (!btn) return;
 
   btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i> Starting…';
+  btn.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i>Starting…';
   if (msg) msg.textContent = 'Sending recipe to the video engine…';
 
-  const recipeData = {
-    food_name:    {{ title[0]|tojson }},
-    ingredients:  {{ ingredients[0]|tojson }},
-    recipe_steps: {{ recipe[0]|tojson }},
+  const payload = {
+    food_name:    __recipeData.food_name,
+    ingredients:  __recipeData.ingredients,
+    recipe_steps: __recipeData.recipe_steps,
     language:     _videoLang,
   };
 
   fetch('/video/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(recipeData),
+    body: JSON.stringify(payload),
   })
   .then(r => r.json())
   .then(data => {
     if (data.job_id) {
-      // Store recipe data so the result page can offer "Generate Again"
-      sessionStorage.setItem('videoRecipeData_' + data.job_id, JSON.stringify(recipeData));
+      sessionStorage.setItem('videoRecipeData_' + data.job_id, JSON.stringify(payload));
       window.location.href = data.redirect_url;
     } else {
       if (msg) msg.textContent = 'Error: ' + (data.error || 'Unknown error');
       btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-film me-2"></i>🎥 Generate Cooking Video';
+      btn.innerHTML = '<i class="fas fa-film me-2"></i>Generate Video';
     }
   })
   .catch(err => {
     console.error(err);
     if (msg) msg.textContent = 'Network error. Please try again.';
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-film me-2"></i>🎥 Generate Cooking Video';
+    btn.innerHTML = '<i class="fas fa-film me-2"></i>Generate Video';
   });
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Lazy-load Chef AI chatbot
+──────────────────────────────────────────────────────────────────────── */
+let _chefLoaded = false;
+function initChefAILazy() {
+  if (_chefLoaded) return;
+  _chefLoaded = true;
+
+  const content = document.getElementById('acc-chef-content');
+  if (!content) return;
+
+  // Fetch the chat HTML component and inject it
+  fetch('/chef-ai/partial')
+    .then(r => r.text())
+    .then(html => {
+      content.innerHTML = html;
+      // Re-init the chatbot JS if it's available
+      if (typeof initChefChat === 'function') initChefChat();
+    })
+    .catch(() => {
+      // Fallback: just show the cached include
+      const placeholder = document.getElementById('chef-lazy-placeholder');
+      if (placeholder) {
+        placeholder.innerHTML = `
+          <div style="width:100%;">
+            <p class="text-muted small text-center">
+              Chef AI is ready — please reload the page to chat.
+            </p>
+          </div>`;
+      }
+    });
+}
+</script>
+
+{# ── Inline chef chat (rendered on first open if /chef-ai/partial fails) #}
+{% if is_valid %}
+<template id="chef-chat-template">
+  {% include 'components/chef_chat.html' %}
+</template>
+<script>
+// Override the lazy loader to use the pre-rendered template if fetch fails
+const _origInit = initChefAILazy;
+window._useTemplate = true;
+function initChefAILazy() {
+  if (_chefLoaded) return;
+  _chefLoaded = true;
+  const content = document.getElementById('acc-chef-content');
+  const tmpl = document.getElementById('chef-chat-template');
+  if (content && tmpl) {
+    content.innerHTML = '';
+    content.appendChild(tmpl.content.cloneNode(true));
+    if (typeof initChefChat === 'function') initChefChat();
+  }
 }
 </script>
 {% endif %}
-{% endblock %}
 
+{% endblock %}
