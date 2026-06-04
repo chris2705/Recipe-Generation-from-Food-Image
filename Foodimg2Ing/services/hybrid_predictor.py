@@ -99,8 +99,8 @@ def predict(image_path: str, img_url: str) -> dict:
           - confidence (float, 0.0-1.0)
           - source (str, e.g. "Local AI Model", "Gemini Vision AI", "Gemini Fallback")
           - gemini_result (dict or None, present when second_opinion is True)
-          - cooking_time (str, from Gemini or "Coming Soon")
-          - servings (str, from Gemini or "Coming Soon")
+          - cooking_time (str, from Gemini or default)
+          - servings (str, from Gemini or default)
     """
     config = _get_config()
     image_name = os.path.basename(image_path)
@@ -146,8 +146,8 @@ def predict(image_path: str, img_url: str) -> dict:
         'confidence': confidence,
         'source': 'Local AI Model',
         'gemini_result': None,
-        'cooking_time': 'Coming Soon',
-        'servings': 'Coming Soon',
+        'cooking_time': '30 mins',
+        'servings': '2 servings',
     }
 
     # ─── Step 3: Confidence-based Decision ─────────────────────────────
@@ -161,8 +161,8 @@ def predict(image_path: str, img_url: str) -> dict:
             gemini_raw = _call_gemini(image_path)
             if gemini_raw:
                 local_result['gemini_result'] = _format_gemini_as_local(gemini_raw)
-                local_result['cooking_time'] = gemini_raw.get('cooking_time', 'Coming Soon')
-                local_result['servings'] = gemini_raw.get('servings', 'Coming Soon')
+                local_result['cooking_time'] = gemini_raw.get('cooking_time', '30 mins')
+                local_result['servings'] = gemini_raw.get('servings', '2 servings')
 
         log_prediction(
             image_name=image_name,
@@ -197,8 +197,8 @@ def predict(image_path: str, img_url: str) -> dict:
                 'confidence': gemini_formatted['confidence'],
                 'source': fallback_source,
                 'gemini_result': None,
-                'cooking_time': gemini_raw.get('cooking_time', 'Coming Soon'),
-                'servings': gemini_raw.get('servings', 'Coming Soon'),
+                'cooking_time': gemini_raw.get('cooking_time', '30 mins'),
+                'servings': gemini_raw.get('servings', '2 servings'),
             }
 
             log_prediction(

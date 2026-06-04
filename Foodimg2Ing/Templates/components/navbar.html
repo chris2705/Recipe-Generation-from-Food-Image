@@ -1,48 +1,54 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+<nav class="navbar navbar-expand-lg navbar-light bg-white py-3 border-bottom sticky-top shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('home') }}">
+        <a class="navbar-brand fw-extrabold d-flex align-items-center font-outfit" href="{{ url_for('home') }}" style="color: #111827; letter-spacing: -0.5px; font-weight: 800;">
             <span class="fs-4 me-2">🍳</span> AI RECIPE GENERATOR
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center gap-1">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a>
+                    <a class="nav-link fw-medium {% if request.endpoint == 'home' %}active text-primary{% endif %}" href="{{ url_for('home') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-medium {% if request.endpoint == 'generate' %}active text-primary{% endif %}" href="{{ url_for('generate') }}">Generate</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-medium {% if request.endpoint == 'demo' %}active text-primary{% endif %}" href="{{ url_for('demo') }}">Demo</a>
                 </li>
 
                 {% if current_user.is_authenticated %}
                 <!-- Logged-in user navigation -->
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'recipe_book.my_recipes' %}active{% endif %}" href="{{ url_for('recipe_book.my_recipes') }}">
-                        <i class="fas fa-book-open me-1"></i>Recipe Book
+                    <a class="nav-link fw-medium {% if request.endpoint == 'recipe_book.my_recipes' %}active text-primary{% endif %}" href="{{ url_for('recipe_book.my_recipes') }}">
+                        <i class="fas fa-book-open me-1 text-primary"></i>Recipe Book
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
+                    <a class="nav-link fw-medium {% if request.endpoint == 'about' %}active text-primary{% endif %}" href="{{ url_for('about') }}">About</a>
                 </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="avatar-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width:28px;height:28px;font-size:0.75rem;font-weight:700;">
+                <li class="nav-item dropdown ms-lg-2">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center fw-semibold" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="avatar-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width:30px;height:30px;font-size:0.75rem;font-weight:700;box-shadow: 0 4px 10px rgba(255,107,107,0.3);">
                             {{ current_user.name[0]|upper }}
                         </span>
                         {{ current_user.name.split(' ')[0] }}
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2 mt-2">
                         <li>
-                            <a class="dropdown-item py-2" href="{{ url_for('auth.profile') }}">
+                            <a class="dropdown-item py-2 rounded-3" href="{{ url_for('auth.profile') }}">
                                 <i class="fas fa-user me-2 text-primary"></i>Profile
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item py-2" href="{{ url_for('recipe_book.my_recipes') }}">
+                            <a class="dropdown-item py-2 rounded-3" href="{{ url_for('recipe_book.my_recipes') }}">
                                 <i class="fas fa-book-open me-2 text-primary"></i>My Recipe Book
                             </a>
                         </li>
-                        <li><hr class="dropdown-divider"></li>
+                        <li><hr class="dropdown-divider opacity-50"></li>
                         <li>
-                            <a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}">
+                            <a class="dropdown-item py-2 rounded-3 text-danger" href="{{ url_for('auth.logout') }}">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
                             </a>
                         </li>
@@ -51,16 +57,16 @@
                 {% else %}
                 <!-- Guest navigation -->
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
+                    <a class="nav-link fw-medium {% if request.endpoint == 'about' %}active text-primary{% endif %}" href="{{ url_for('about') }}">About</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
+                    <a class="nav-link fw-medium {% if request.endpoint == 'auth.login' %}active text-primary{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Register</a>
+                    <a class="nav-link fw-medium {% if request.endpoint == 'auth.register' %}active text-primary{% endif %}" href="{{ url_for('auth.register') }}">Register</a>
                 </li>
-                <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
-                    <a class="btn btn-primary px-4 rounded-pill fw-semibold" href="{{ url_for('generate') }}">Get Started</a>
+                <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+                    <a class="btn btn-primary px-4 rounded-pill fw-semibold shadow-sm hover-lift" href="{{ url_for('generate') }}">Get Started</a>
                 </li>
                 {% endif %}
             </ul>

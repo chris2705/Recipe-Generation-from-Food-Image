@@ -7,30 +7,42 @@
 {% endblock %}
 
 {% block content %}
-<section class="py-5">
+<section class="py-5 bg-white">
     <div class="container py-4">
 
         <!-- Page Header -->
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-5">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-5 border-bottom pb-4">
             <div>
-                <h1 class="fw-bold font-outfit mb-1">
+                <h1 class="fw-extrabold font-outfit mb-1 text-dark" style="letter-spacing: -1px;">
                     <i class="fas fa-book-open text-primary me-2"></i>My Recipe Book
                 </h1>
-                <p class="text-muted mb-0">
-                    {{ recipes|length }} recipe{{ 's' if recipes|length != 1 else '' }} saved
+                <p class="text-secondary small mb-0 fw-medium">
+                    {{ recipes|length }} recipe{{ 's' if recipes|length != 1 else '' }} saved in your cookbook
                 </p>
             </div>
-            <a href="{{ url_for('generate') }}" class="btn btn-primary rounded-pill px-4 fw-semibold mt-3 mt-sm-0 hover-lift shadow-sm">
+            <a href="{{ url_for('generate') }}" class="btn btn-primary rounded-pill px-4 py-2.5 fw-semibold mt-3 mt-sm-0 hover-lift shadow-sm">
                 <i class="fas fa-plus me-2"></i>Generate New Recipe
             </a>
         </div>
 
         {% if recipes %}
+        <!-- Search Box -->
+        <div class="row mb-5">
+            <div class="col-md-6 col-lg-4">
+                <div class="input-group shadow-sm rounded-pill overflow-hidden border border-light-subtle bg-white" style="border: 1.5px solid #e5e7eb !important;">
+                    <span class="input-group-text bg-white border-0 ps-3 text-secondary">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" id="recipeSearchInput" class="form-control border-0 py-2.5 ps-1 small" placeholder="Search saved recipes..." aria-label="Search recipes" style="outline: none; box-shadow: none; font-size: 0.9rem;">
+                </div>
+            </div>
+        </div>
+
         <!-- Recipe Grid -->
-        <div class="row g-4">
+        <div class="row g-4" id="recipeGrid">
             {% for recipe in recipes %}
-            <div class="col-sm-6 col-lg-4">
-                <div class="card recipe-card border-0 shadow-sm rounded-4 overflow-hidden h-100 transition-all hover-lift">
+            <div class="col-sm-6 col-lg-4 recipe-item-col" data-food-name="{{ recipe.food_name|lower }}" data-ingredients="{{ ','.join(recipe.get_ingredients())|lower }}">
+                <div class="card recipe-card border border-light-subtle shadow-sm rounded-4 overflow-hidden h-100 transition-all hover-lift">
                     <!-- Recipe Image -->
                     <div class="recipe-card-image position-relative">
                         {% if recipe.image_path %}
@@ -42,33 +54,33 @@
                         </div>
                         {% endif %}
                         <!-- Source Badge -->
-                        <span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75 text-white rounded-pill px-2 py-1 small">
+                        <span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75 text-white rounded-pill px-3 py-1.5 small font-outfit fw-semibold">
                             <i class="fas fa-{% if 'Gemini' in recipe.prediction_source %}robot{% else %}brain{% endif %} me-1"></i>
                             {{ recipe.prediction_source|truncate(15, True) if recipe.prediction_source else 'AI' }}
                         </span>
                         <!-- Bookmark indicator -->
                         <div class="position-absolute top-0 start-0 m-2">
-                            <span class="badge bg-primary rounded-pill px-2 py-1">
+                            <span class="badge bg-primary rounded-pill p-2 d-flex align-items-center justify-content-center" style="width:30px;height:30px;">
                                 <i class="fas fa-bookmark"></i>
                             </span>
                         </div>
                     </div>
 
-                    <div class="card-body p-4 d-flex flex-column">
-                        <h5 class="fw-bold font-outfit mb-2 text-capitalize">{{ recipe.food_name }}</h5>
-                        <div class="text-muted small mb-3">
-                            <i class="fas fa-calendar-alt me-1"></i>
+                    <div class="card-body p-4 d-flex flex-column bg-white">
+                        <h5 class="fw-bold font-outfit mb-1 text-capitalize text-dark">{{ recipe.food_name }}</h5>
+                        <div class="text-secondary small mb-4 fw-medium">
+                            <i class="fas fa-calendar-alt me-1 text-primary"></i>
                             Saved {{ recipe.created_at.strftime('%b %d, %Y') }}
                         </div>
 
                         <div class="mt-auto d-flex gap-2">
                             <a href="{{ url_for('recipe_book.view_recipe', recipe_id=recipe.id) }}" 
-                               class="btn btn-primary btn-sm rounded-pill flex-grow-1 fw-semibold">
+                               class="btn btn-primary btn-sm rounded-pill flex-grow-1 fw-semibold py-2">
                                 <i class="fas fa-eye me-1"></i> View Recipe
                             </a>
                             <form method="POST" action="{{ url_for('recipe_book.delete_recipe', recipe_id=recipe.id) }}" 
                                   class="d-inline" onsubmit="return confirm('Delete this recipe from your book?');">
-                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="Delete">
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2" title="Delete" style="transition: all 0.2s ease;">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
@@ -87,15 +99,15 @@
                     <i class="fas fa-book-open fs-1 text-primary"></i>
                 </div>
             </div>
-            <h3 class="fw-bold font-outfit mb-2">Your Recipe Book is Empty</h3>
-            <p class="text-muted mb-4 col-md-6 mx-auto">
-                Generate recipes from food images and save your favorites to build your personal recipe collection.
+            <h3 class="fw-bold font-outfit mb-2 text-dark">No saved recipes yet.</h3>
+            <p class="text-secondary mb-4 col-md-6 mx-auto fw-medium">
+                Generate a recipe and save it to your Recipe Book.
             </p>
             <div class="d-flex gap-3 justify-content-center">
-                <a href="{{ url_for('generate') }}" class="btn btn-primary rounded-pill px-4 fw-semibold hover-lift shadow-sm">
+                <a href="{{ url_for('generate') }}" class="btn btn-primary rounded-pill px-4 py-2.5 fw-semibold hover-lift shadow-sm">
                     <i class="fas fa-magic me-2"></i>Generate a Recipe
                 </a>
-                <a href="{{ url_for('demo') }}" class="btn btn-outline-primary rounded-pill px-4 fw-semibold hover-lift">
+                <a href="{{ url_for('demo') }}" class="btn btn-outline-primary rounded-pill px-4 py-2.5 fw-semibold hover-lift">
                     <i class="fas fa-play-circle me-2"></i>Try a Demo
                 </a>
             </div>
@@ -104,4 +116,58 @@
 
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+{% if recipes %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('recipeSearchInput');
+    const recipeCols = document.querySelectorAll('.recipe-item-col');
+    const recipeGrid = document.getElementById('recipeGrid');
+    
+    // Create and configure the "No search results" empty state element
+    const noResultsDiv = document.createElement('div');
+    noResultsDiv.className = 'text-center py-5 d-none w-100';
+    noResultsDiv.id = 'noSearchResults';
+    noResultsDiv.innerHTML = `
+        <div class="empty-state-wrapper mb-3">
+            <div class="empty-icon-circle mx-auto" style="width: 80px; height: 80px; font-size: 2rem; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-subtle), #fff); box-shadow: 0 8px 25px rgba(255, 107, 107, 0.12);">
+                🔍
+            </div>
+        </div>
+        <h4 class="fw-bold font-outfit text-dark">No recipes match your search</h4>
+        <p class="text-secondary small fw-medium">Try searching for a different food name or ingredient.</p>
+    `;
+    if (recipeGrid) {
+        recipeGrid.appendChild(noResultsDiv);
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase().trim();
+            let visibleCount = 0;
+            
+            recipeCols.forEach(col => {
+                const foodName = col.getAttribute('data-food-name') || '';
+                const ingredients = col.getAttribute('data-ingredients') || '';
+                
+                if (foodName.includes(query) || ingredients.includes(query)) {
+                    col.classList.remove('d-none');
+                    visibleCount++;
+                } else {
+                    col.classList.add('d-none');
+                }
+            });
+            
+            if (visibleCount === 0 && query !== '') {
+                noResultsDiv.classList.remove('d-none');
+            } else {
+                noResultsDiv.classList.add('d-none');
+            }
+        });
+    }
+});
+</script>
+{% endif %}
 {% endblock %}

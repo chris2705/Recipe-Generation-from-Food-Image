@@ -40,11 +40,11 @@
         <a href="{{ url_for('generate') }}" class="text-decoration-none text-secondary hover-primary"><i class="fas fa-arrow-left me-2"></i> Back to Generator</a>
     </div>
     
-    <div class="row g-5">
-        <!-- Left Col: Image & Insights -->
+    <div class="row g-4">
+        <!-- Left Col: Image, Confidence, Source, Nutrition -->
         <div class="col-lg-4">
             <!-- Food Image Card -->
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 position-sticky top-0">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 border">
                 <div class="image-wrapper position-relative">
                     {% if img %}
                     <img src="{{ url_for('static', filename=img) }}" alt="Analyzed Food Image" class="img-fluid w-100 object-fit-cover" style="max-height: 400px;">
@@ -55,12 +55,11 @@
                     {% endif %}
                     <div class="position-absolute bottom-0 start-0 w-100 p-3 bg-gradient-dark text-white">
                         <span class="badge bg-primary mb-1">Analyzed</span>
-                        <h4 class="mb-0 fw-bold">{{ title[0] }}</h4>
+                        <h4 class="mb-0 fw-bold font-outfit">{{ title[0] }}</h4>
                     </div>
                 </div>
                 
                 <div class="card-body p-4 bg-white">
-
                     <!-- Prediction Source Badge -->
                     <div class="mb-3">
                         <h6 class="fw-bold text-uppercase text-secondary small mb-2 font-outfit">Prediction Source</h6>
@@ -109,77 +108,59 @@
 
                     <h6 class="fw-bold mb-3 font-outfit text-uppercase text-secondary small">AI Insights</h6>
                     
-                    <div class="row g-2 mb-3">
+                    <div class="row g-2">
                         <div class="col-6">
-                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 position-relative border">
-                                {% if cooking_time is defined and cooking_time != 'Coming Soon' %}
+                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 border">
                                 <i class="fas fa-clock text-info mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Cooking Time</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">{{ cooking_time }}</div>
-                                {% else %}
-                                <span class="position-absolute top-0 end-0 badge bg-secondary" style="font-size: 0.5rem; transform: translate(25%, -25%);">Soon</span>
-                                <i class="fas fa-clock text-info mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Cooking Time</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">-- mins</div>
-                                {% endif %}
+                                <div class="small fw-semibold text-dark">Cooking Time</div>
+                                <div class="text-secondary font-outfit fw-bold" style="font-size: 0.85rem;">{{ cooking_time }}</div>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 position-relative border">
-                                {% if nutrition and nutrition.get('servings') %}
+                            <div class="insight-box bg-light rounded-3 p-3 text-center h-100 border">
                                 <i class="fas fa-users text-success mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Servings</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">{{ nutrition.servings }} portions</div>
-                                {% elif servings is defined and servings != 'Coming Soon' %}
-                                <i class="fas fa-users text-success mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Servings</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">{{ servings }}</div>
-                                {% else %}
-                                <i class="fas fa-users text-success mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Servings</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">--</div>
-                                {% endif %}
+                                <div class="small fw-semibold text-dark">Servings</div>
+                                <div class="text-secondary font-outfit fw-bold" style="font-size: 0.85rem;">{{ servings }}</div>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="insight-box rounded-3 p-3 text-center h-100 border"
-                                 style="background: linear-gradient(135deg, #fff5f0, #fff);">
-                                {% if nutrition and nutrition.get('calories') %}
+                            <div class="insight-box rounded-3 p-3 text-center h-100 border" style="background: linear-gradient(135deg, #fff5f0, #fff);">
                                 <i class="fas fa-fire-alt text-warning mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Calories</div>
-                                <div style="font-size: 0.8rem; font-weight: 800; color: #FF6B35;">{{ nutrition.calories }} kcal</div>
-                                {% else %}
-                                <i class="fas fa-fire-alt text-warning mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Calories</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">Analyzing...</div>
-                                {% endif %}
+                                <div class="small fw-semibold text-dark">Calories</div>
+                                <div style="font-size: 0.85rem; font-weight: 800; color: #FF6B35;">
+                                    {% if nutrition and nutrition.get('calories') %}{{ nutrition.calories }} kcal{% else %}Estimated{% endif %}
+                                </div>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="insight-box rounded-3 p-3 text-center h-100 border"
-                                 style="background: linear-gradient(135deg, #f0fdf4, #fff);">
-                                {% if nutrition and nutrition.get('health_score') %}
+                            <div class="insight-box rounded-3 p-3 text-center h-100 border" style="background: linear-gradient(135deg, #f0fdf4, #fff);">
                                 <i class="fas fa-heartbeat text-success mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Health Score</div>
-                                <div style="font-size: 0.8rem; font-weight: 800; color: #4CAF82;">{{ nutrition.health_score }}/100</div>
-                                {% else %}
-                                <i class="fas fa-leaf text-success mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Diet</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">Various</div>
-                                {% endif %}
+                                <div class="small fw-semibold text-dark">Health Score</div>
+                                <div style="font-size: 0.85rem; font-weight: 800; color: #4CAF82;">
+                                    {% if nutrition and nutrition.get('health_score') %}{{ nutrition.health_score }}/100{% else %}Estimated{% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
+            
+            <!-- Nutrition Card in Left Column -->
+            {% include 'components/nutrition_card.html' %}
         </div>
 
-        <!-- Right Col: Ingredients & Instructions -->
+        <!-- Right Col: Recipe Title, Ingredients & Instructions -->
         <div class="col-lg-8">
             {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
             
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <!-- Recipe Title Header -->
+            <div class="mb-4">
+                <h1 class="display-4 fw-extrabold font-outfit text-dark mb-2 text-capitalize" style="letter-spacing: -1.5px; font-weight: 800;">{{ title[0] }}</h1>
+                <p class="text-muted"><i class="fas fa-magic text-primary me-2"></i>AI-generated custom recipe tailored to your image analysis</p>
+            </div>
+
+            <!-- Ingredients Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4 border">
                 <div class="card-body p-4 p-md-5">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3 class="fw-bold font-outfit mb-0"><i class="fas fa-shopping-basket text-primary me-2"></i> Predicted Ingredients</h3>
@@ -196,7 +177,8 @@
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm rounded-4">
+            <!-- Instructions Card -->
+            <div class="card border-0 shadow-sm rounded-4 border">
                 <div class="card-body p-4 p-md-5">
                     <h3 class="fw-bold font-outfit mb-4"><i class="fas fa-list-ol text-primary me-2"></i> Cooking Instructions</h3>
                     
@@ -215,92 +197,13 @@
                 </div>
             </div>
 
-            {% include 'components/nutrition_card.html' %}
-
-            {% else %}
-            <!-- Error State -->
-            <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
-                <i class="fas fa-exclamation-triangle text-warning display-1 mb-4"></i>
-                <h2 class="fw-bold">Oh no!</h2>
-                <h4 class="text-muted">{{ recipe[0] }}</h4>
-                <p class="mt-4">We couldn't recognize a valid food item in the image. Please try uploading another photo.</p>
-                <a href="{{ url_for('generate') }}" class="btn btn-primary rounded-pill px-4 py-2 mt-3">Try Again</a>
-            </div>
-            {% endif %}
-
-            <!-- ❤️ Save To Recipe Book Button -->
-            {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
-            <div class="card border-0 shadow-sm rounded-4 mt-4 save-recipe-card">
-                <div class="card-body p-4 text-center">
-                    <button type="button" class="btn btn-save-recipe btn-lg rounded-pill px-5 fw-bold shadow-sm hover-lift" id="save-recipe-btn">
-                        <span class="save-default">
-                            <i class="fas fa-heart me-2"></i>Save To Recipe Book
-                        </span>
-                        <span class="save-loading d-none">
-                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>Saving...
-                        </span>
-                        <span class="save-done d-none">
-                            <i class="fas fa-bookmark me-2"></i>Saved to Recipe Book
-                        </span>
-                    </button>
-                    <div id="save-message" class="mt-3 d-none"></div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- 🎥 Generate Cooking Video Button -->
-            {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
-            <div class="card border-0 shadow-sm rounded-4 mt-4" id="video-gen-card"
-                 style="background: linear-gradient(135deg, #0f0f23 0%, #1a0a0a 100%); border: 1.5px solid rgba(255,107,107,0.25) !important;">
-                <div class="card-body p-4 text-center">
-                    <div class="mb-2"><span style="font-size:2rem;">🎬</span></div>
-                    <h6 class="fw-bold mb-1 font-outfit" style="color:#ff9a9e;">AI Video Recipe Generator</h6>
-                    <p class="small mb-3" style="color:rgba(255,255,255,0.45);">
-                        Turn this recipe into a narrated cooking tutorial — downloadable MP4, in your language.
-                    </p>
-                    <div class="mb-3">
-                        <div class="d-flex flex-wrap gap-2 justify-content-center" id="resultLangPills">
-                            <span class="lang-pill-sm selected" data-lang="english">🇬🇧 English</span>
-                            <span class="lang-pill-sm" data-lang="malayalam">🇮🇳 Malayalam</span>
-                            <span class="lang-pill-sm" data-lang="hindi">🇮🇳 Hindi</span>
-                            <span class="lang-pill-sm" data-lang="tamil">🇮🇳 Tamil</span>
-                            <span class="lang-pill-sm" data-lang="telugu">🇮🇳 Telugu</span>
-                            <span class="lang-pill-sm" data-lang="kannada">🇮🇳 Kannada</span>
-                        </div>
-                    </div>
-                    <button class="btn fw-bold rounded-pill px-4 py-2 shadow-sm"
-                            id="generateVideoBtn"
-                            style="background:linear-gradient(135deg,#ff6b6b,#ee5a6f);color:#fff;border:none;font-size:1rem;transition:all .3s ease;"
-                            onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(255,107,107,0.45)'"
-                            onmouseout="this.style.transform='';this.style.boxShadow=''"
-                            onclick="startVideoGeneration()">
-                        <i class="fas fa-film me-2"></i>🎥 Generate Cooking Video
-                    </button>
-                    <div id="videoGenMessage" class="mt-2 small" style="color:rgba(255,255,255,0.4);"></div>
-                </div>
-            </div>
-            <style>
-            .lang-pill-sm{cursor:pointer;padding:.3rem .8rem;border-radius:999px;border:1.5px solid rgba(255,107,107,.3);background:rgba(255,107,107,.07);color:rgba(255,255,255,.65);font-size:.8rem;font-weight:500;transition:all .2s ease;user-select:none;}
-            .lang-pill-sm:hover{border-color:rgba(255,107,107,.6);color:#fff;background:rgba(255,107,107,.15);}
-            .lang-pill-sm.selected{background:linear-gradient(135deg,#ff6b6b,#ff5252);border-color:transparent;color:#fff;font-weight:700;box-shadow:0 4px 14px rgba(255,107,107,.4);}
-            </style>
-            {% endif %}
-
-            <!-- 🧑‍🍳 Ask Chef AI Chat Panel -->
-
-            {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
-            <div class="mt-4">
-                {% include 'components/chef_chat.html' %}
-            </div>
-            {% endif %}
-
             <!-- Second Opinion: Gemini Result Side-by-Side -->
             {% if gemini_result %}
             <div class="mt-5 pt-4 border-top">
                 <h4 class="fw-bold mb-4 text-muted">
                     <i class="fas fa-robot text-info me-2"></i> Gemini Vision — Second Opinion
                 </h4>
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="border-left: 4px solid #0dcaf0 !important;">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden border" style="border-left: 4px solid #0dcaf0 !important;">
                     <div class="card-body p-4 p-md-5">
                         <div class="d-flex align-items-center mb-3">
                             <span class="badge bg-info text-dark px-3 py-2 rounded-pill me-3">
@@ -336,12 +239,12 @@
             </div>
             {% endif %}
 
-            <!-- Alternative Local Recipe (if model generated a second one) -->
+            <!-- Alternative Local Recipe -->
             {% if title|length > 1 and title[1] is defined and title[1] != "Not a valid recipe!" %}
             <div class="mt-5 pt-4 border-top">
                 <h4 class="fw-bold mb-4 text-muted"><i class="fas fa-lightbulb text-warning me-2"></i> Alternative Recipe Suggestion</h4>
                 <div class="accordion shadow-sm rounded-4" id="accordionAlt">
-                    <div class="accordion-item border-0 rounded-4 overflow-hidden">
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden border">
                         <h2 class="accordion-header" id="headingOne">
                             <button class="accordion-button collapsed bg-light fw-bold fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
                                 {{ title[1] }}
@@ -364,9 +267,87 @@
                 </div>
             </div>
             {% endif %}
-            
+
+            {% else %}
+            <!-- Error State -->
+            <div class="card border-0 shadow-sm rounded-4 p-5 text-center border">
+                <i class="fas fa-exclamation-triangle text-warning display-1 mb-4"></i>
+                <h2 class="fw-bold">Oh no!</h2>
+                <h4 class="text-muted">{{ recipe[0] }}</h4>
+                <p class="mt-4">We couldn't recognize a valid food item in the image. Please try uploading another photo.</p>
+                <a href="{{ url_for('generate') }}" class="btn btn-primary rounded-pill px-4 py-2 mt-3">Try Again</a>
+            </div>
+            {% endif %}
         </div>
     </div>
+
+    <!-- Below Section: Actions & Chatbot -->
+    {% if title[0] != "Not a valid recipe!" and title[0] != "Model Error" %}
+    <div class="row g-4 mt-4">
+        <!-- Save Recipe Card -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 save-recipe-card border">
+                <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
+                    <div class="mb-2 text-primary fs-3"><i class="fas fa-bookmark"></i></div>
+                    <h5 class="fw-bold font-outfit text-dark mb-1">Save to Cookbook</h5>
+                    <p class="small text-secondary mb-3">Store this recipe securely in your personal Recipe Book to access it anytime.</p>
+                    <button type="button" class="btn btn-save-recipe btn-lg rounded-pill px-5 fw-bold shadow-sm hover-lift" id="save-recipe-btn">
+                        <span class="save-default">
+                            <i class="fas fa-heart me-2"></i>Save Recipe
+                        </span>
+                        <span class="save-loading d-none">
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>Saving...
+                        </span>
+                        <span class="save-done d-none">
+                            <i class="fas fa-check me-2"></i>Saved!
+                        </span>
+                    </button>
+                    <div id="save-message" class="mt-3 d-none"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Generation Card -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border" id="video-gen-card" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 1.5px solid rgba(255,107,107,0.15) !important;">
+                <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
+                    <div class="mb-2"><span style="font-size:2rem;">🎬</span></div>
+                    <h5 class="fw-bold font-outfit mb-1" style="color:#ff9a9e;">AI Cooking Video</h5>
+                    <p class="small mb-3 text-light text-opacity-50">Generate a step-by-step narrated video cooking guide in your language.</p>
+                    <div class="mb-3">
+                        <div class="d-flex flex-wrap gap-2 justify-content-center" id="resultLangPills">
+                            <span class="lang-pill-sm selected" data-lang="english">🇬🇧 English</span>
+                            <span class="lang-pill-sm" data-lang="malayalam">🇮🇳 Malayalam</span>
+                            <span class="lang-pill-sm" data-lang="hindi">🇮🇳 Hindi</span>
+                            <span class="lang-pill-sm" data-lang="tamil">🇮🇳 Tamil</span>
+                            <span class="lang-pill-sm" data-lang="telugu">🇮🇳 Telugu</span>
+                            <span class="lang-pill-sm" data-lang="kannada">🇮🇳 Kannada</span>
+                        </div>
+                    </div>
+                    <button class="btn fw-bold rounded-pill px-4 py-2 shadow-sm"
+                            id="generateVideoBtn"
+                            style="background:linear-gradient(135deg,#ff6b6b,#ee5a6f);color:#fff;border:none;font-size:1rem;transition:all .3s ease;"
+                            onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(255,107,107,0.45)'"
+                            onmouseout="this.style.transform='';this.style.boxShadow=''"
+                            onclick="startVideoGeneration()">
+                        <i class="fas fa-film me-2"></i>Generate Video
+                    </button>
+                    <div id="videoGenMessage" class="mt-2 small text-light text-opacity-40"></div>
+                </div>
+            </div>
+            <style>
+            .lang-pill-sm{cursor:pointer;padding:.3rem .8rem;border-radius:999px;border:1.5px solid rgba(255,107,107,.3);background:rgba(255,107,107,.07);color:rgba(255,255,255,.65);font-size:.8rem;font-weight:500;transition:all .2s ease;user-select:none;}
+            .lang-pill-sm:hover{border-color:rgba(255,107,107,.6);color:#fff;background:rgba(255,107,107,.15);}
+            .lang-pill-sm.selected{background:linear-gradient(135deg,#ff6b6b,#ff5252);border-color:transparent;color:#fff;font-weight:700;box-shadow:0 4px 14px rgba(255,107,107,.4);}
+            </style>
+        </div>
+
+        <!-- Chatbot Panel full-width -->
+        <div class="col-12 mt-4">
+            {% include 'components/chef_chat.html' %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Login Required Modal -->

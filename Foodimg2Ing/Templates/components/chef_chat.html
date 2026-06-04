@@ -34,15 +34,20 @@
             <option value="te">🇮🇳 Telugu</option>
             <option value="kn">🇮🇳 Kannada</option>
         </select>
+
+        <!-- Voice Selector -->
+        <select class="chef-gender-select ms-2" id="chef-gender-selector" title="Voice Gender">
+            <option value="female">👩 Female</option>
+            <option value="male">👨 Male</option>
+        </select>
     </div>
 
     <!-- Chat Messages -->
     <div class="chef-chat-messages" id="chef-chat-messages">
-        <!-- Welcome Message -->
+        <!-- Welcome Message / Empty State -->
         <div class="chef-welcome" id="chef-welcome">
-            <span class="chef-welcome-icon">🧑‍🍳</span>
-            <h5>Hi! I'm Chef AI</h5>
-            <p>Ask me anything about this recipe — ingredient swaps, cooking tips, or nutritional questions!</p>
+            <span class="chef-welcome-icon" style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">🧑‍🍳</span>
+            <p class="text-secondary small fw-medium mb-0">Ask me anything about this recipe.</p>
         </div>
 
         <!-- Typing Indicator -->
@@ -80,20 +85,22 @@
 
     <!-- Input Area -->
     <div class="chef-chat-input-area">
-        <input type="text"
-               class="chef-chat-input"
-               id="chef-chat-input"
-               placeholder="Ask Chef AI anything about this recipe..."
-               autocomplete="off"
-               maxlength="500">
-
-        <button type="button" class="btn-voice-input" id="btn-voice-input" title="Speak your question">
-            <i class="fas fa-microphone"></i>
-        </button>
-
-        <button type="button" class="btn-send-chat" id="btn-send-chat" title="Send message" disabled>
-            <i class="fas fa-paper-plane"></i>
-        </button>
+        <div class="chef-chat-input-wrapper">
+            <input type="text"
+                   class="chef-chat-input"
+                   id="chef-chat-input"
+                   placeholder="Ask Chef AI anything about this recipe..."
+                   autocomplete="off"
+                   maxlength="500">
+            <div class="chef-chat-input-buttons">
+                <button type="button" class="btn-voice-input" id="btn-voice-input" title="Speak your question">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button type="button" class="btn-send-chat" id="btn-send-chat" title="Send message" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
 </div>

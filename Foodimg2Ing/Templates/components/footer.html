@@ -1,33 +1,48 @@
-<footer class="bg-dark text-light py-5 mt-auto">
+<footer class="bg-dark text-light py-5 mt-auto" style="background-color: #0f172a !important;">
     <div class="container">
         <div class="row gy-4">
+            <!-- Brand Column -->
             <div class="col-lg-4 col-md-6">
-                <h5 class="fw-bold mb-3 d-flex align-items-center">
+                <h5 class="fw-bold mb-3 d-flex align-items-center font-outfit" style="color: #ff6b6b; letter-spacing: -0.5px;">
                     <span class="me-2">🍳</span> AI RECIPE GENERATOR
                 </h5>
-                <p class="text-secondary">Transforming the way you cook. Upload any food image and let our AI create the perfect recipe for you instantly.</p>
+                <p class="text-secondary small lh-relaxed">
+                    Transforming the way you cook. Upload any food image and let our AI create the perfect recipe for you instantly. Built on cutting-edge neural networks.
+                </p>
             </div>
-            <div class="col-lg-2 col-md-6">
-                <h6 class="text-uppercase fw-bold mb-3">Links</h6>
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2"><a href="{{ url_for('home') }}" class="text-secondary text-decoration-none hover-primary">Home</a></li>
-                    <li class="mb-2"><a href="{{ url_for('generate') }}" class="text-secondary text-decoration-none hover-primary">Generate Recipe</a></li>
-                    <li class="mb-2"><a href="{{ url_for('about') }}" class="text-secondary text-decoration-none hover-primary">About Us</a></li>
-                    {% if current_user.is_authenticated %}
-                    <li class="mb-2"><a href="{{ url_for('recipe_book.my_recipes') }}" class="text-secondary text-decoration-none hover-primary">Recipe Book</a></li>
-                    {% endif %}
-                </ul>
+            
+            <!-- Links Column -->
+            <div class="col-lg-5 col-md-6">
+                <h6 class="text-uppercase fw-bold mb-3 text-white font-outfit" style="letter-spacing: 1px; font-size: 0.8rem;">Navigation</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><a href="{{ url_for('home') }}" class="text-secondary text-decoration-none hover-primary small">Home</a></li>
+                            <li class="mb-2"><a href="{{ url_for('generate') }}" class="text-secondary text-decoration-none hover-primary small">Generate</a></li>
+                            <li class="mb-2"><a href="{{ url_for('about') }}" class="text-secondary text-decoration-none hover-primary small">About Us</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-6">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <a href="{{ url_for('recipe_book.my_recipes') }}" class="text-secondary text-decoration-none hover-primary small">Recipe Book</a>
+                            </li>
+                            {% if current_user.is_authenticated %}
+                            <li class="mb-2"><a href="{{ url_for('auth.profile') }}" class="text-secondary text-decoration-none hover-primary small">Profile</a></li>
+                            <li class="mb-2"><a href="{{ url_for('auth.logout') }}" class="text-secondary text-decoration-none hover-primary text-danger small">Logout</a></li>
+                            {% else %}
+                            <li class="mb-2"><a href="{{ url_for('auth.login') }}" class="text-secondary text-decoration-none hover-primary small">Login</a></li>
+                            <li class="mb-2"><a href="{{ url_for('auth.register') }}" class="text-secondary text-decoration-none hover-primary small">Register</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
             </div>
+            
+            <!-- Connect Column -->
             <div class="col-lg-3 col-md-6">
-                <h6 class="text-uppercase fw-bold mb-3">Upcoming Features</h6>
-                <ul class="list-unstyled mb-0 text-secondary">
-                    <li class="mb-2"><i class="fas fa-chart-pie me-2 small"></i> Nutrition Analysis</li>
-                    <li class="mb-2"><i class="fas fa-robot me-2 small"></i> Gemini AI Integration</li>
-                    <li class="mb-2"><i class="fas fa-calendar-alt me-2 small"></i> Meal Planning</li>
-                </ul>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <h6 class="text-uppercase fw-bold mb-3">Connect</h6>
+                <h6 class="text-uppercase fw-bold mb-3 text-white font-outfit" style="letter-spacing: 1px; font-size: 0.8rem;">Connect</h6>
+                <p class="text-secondary small mb-3">Join our developer & cooking community.</p>
                 <div class="d-flex gap-3">
                     <a href="#" class="text-light fs-5 hover-primary"><i class="fab fa-twitter"></i></a>
                     <a href="#" class="text-light fs-5 hover-primary"><i class="fab fa-github"></i></a>
@@ -35,7 +50,8 @@
                 </div>
             </div>
         </div>
-        <hr class="border-secondary my-4">
+        
+        <hr class="border-secondary my-4 opacity-25">
         <div class="text-center text-secondary small">
             &copy; 2026 AI Recipe Generator. All rights reserved. Powered by Artificial Intelligence.
         </div>

@@ -2,19 +2,19 @@
     --primary-color: #ff6b6b;
     --primary-hover: #ff5252;
     --primary-subtle: #ffe3e3;
-    --secondary-color: #4a4a4a;
-    --dark-color: #1a1a1a;
-    --light-color: #f8f9fa;
-    --success-color: #20c997;
-    --warning-color: #ffc107;
+    --secondary-color: #4b5563;
+    --dark-color: #111827;
+    --light-color: #f9fafb;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
     --font-sans: 'Inter', sans-serif;
-    --font-heading: 'Outfit', sans-serif;
+    --font-heading: 'Poppins', sans-serif;
 }
 
 body {
     font-family: var(--font-sans);
-    color: var(--secondary-color);
-    background-color: #fdfdfd;
+    color: var(--dark-color);
+    background-color: #ffffff;
 }
 
 h1, h2, h3, h4, h5, h6, .font-outfit {

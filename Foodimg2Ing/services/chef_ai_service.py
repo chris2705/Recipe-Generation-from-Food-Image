@@ -157,10 +157,16 @@ def _build_system_prompt(recipe_context: dict, language: str = 'en') -> str:
     # Language instruction
     lang_name = LANGUAGE_MAP.get(language, 'English')
     if language != 'en':
-        language_instruction = (
-            f"\n\nLANGUAGE: Respond entirely in {lang_name}. "
-            f"Do not mix languages."
-        )
+        if language == 'ml':
+            language_instruction = (
+                "\n\nLANGUAGE: Respond entirely in Malayalam script (മലയാളം ലിപി). "
+                "Do not use Latin transliteration or English characters. The response must be readable in proper Malayalam script."
+            )
+        else:
+            language_instruction = (
+                f"\n\nLANGUAGE: Respond entirely in {lang_name}. "
+                f"Do not mix languages."
+            )
     else:
         language_instruction = ""
 

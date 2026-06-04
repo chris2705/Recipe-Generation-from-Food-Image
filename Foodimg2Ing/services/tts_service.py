@@ -174,6 +174,7 @@ class TTSService:
         text: str,
         language: str,
         output_path: str,
+        voice: Optional[str] = None,
     ) -> bool:
         """
         Generate a single MP3 audio clip from *text* and write to *output_path*.
@@ -182,7 +183,8 @@ class TTSService:
         """
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-        voice = get_voice(language)
+        if not voice:
+            voice = get_voice(language)
         gtts_lang = get_gtts_lang(language)
 
         logger.info(f"TTS | voice={voice} | chars={len(text)} | → {output_path}")

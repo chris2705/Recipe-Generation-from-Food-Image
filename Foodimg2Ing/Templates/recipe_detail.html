@@ -18,10 +18,11 @@
         </a>
     </div>
 
-    <div class="row g-5">
-        <!-- Left Col: Image & Info -->
+    <div class="row g-4">
+        <!-- Left Col: Image, Confidence, Source, Nutrition -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 position-sticky top-0">
+            <!-- Food Image Card -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 border">
                 <div class="image-wrapper position-relative">
                     {% if recipe.image_path %}
                     <img src="{{ url_for('static', filename=recipe.image_path) }}" 
@@ -35,7 +36,7 @@
                         <span class="badge bg-primary mb-1">
                             <i class="fas fa-bookmark me-1"></i>Saved
                         </span>
-                        <h4 class="mb-0 fw-bold text-capitalize">{{ recipe.food_name }}</h4>
+                        <h4 class="mb-0 fw-bold text-capitalize font-outfit">{{ recipe.food_name }}</h4>
                     </div>
                 </div>
                 
@@ -72,78 +73,55 @@
                     <hr class="my-3">
 
                     <!-- Meta Info -->
-                    <div class="row g-2 mb-3">
+                    <div class="row g-2">
                         <div class="col-6">
                             <div class="insight-box bg-light rounded-3 p-3 text-center h-100 border">
                                 <i class="fas fa-calendar-alt text-info mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Saved On</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">{{ recipe.created_at.strftime('%b %d, %Y') }}</div>
+                                <div class="small fw-semibold text-dark">Saved On</div>
+                                <div class="text-secondary font-outfit fw-bold" style="font-size: 0.8rem;">{{ recipe.created_at.strftime('%b %d, %Y') }}</div>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="insight-box bg-light rounded-3 p-3 text-center h-100 border">
                                 <i class="fas fa-clock text-info mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Cooking Time</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">{{ recipe.cooking_time or '—' }}</div>
+                                <div class="small fw-semibold text-dark">Cooking Time</div>
+                                <div class="text-secondary font-outfit fw-bold" style="font-size: 0.85rem;">{{ recipe.cooking_time or '30 mins' }}</div>
                             </div>
                         </div>
                         {% if nutrition and nutrition.get('calories') %}
                         <div class="col-6">
-                            <div class="insight-box rounded-3 p-3 text-center h-100 border"
-                                 style="background: linear-gradient(135deg, #fff5f0, #fff);">
+                            <div class="insight-box rounded-3 p-3 text-center h-100 border" style="background: linear-gradient(135deg, #fff5f0, #fff);">
                                 <i class="fas fa-fire-alt text-warning mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Calories</div>
-                                <div style="font-size: 0.8rem; font-weight: 800; color: #FF6B35;">{{ nutrition.calories }} kcal</div>
+                                <div class="small fw-semibold text-dark">Calories</div>
+                                <div style="font-size: 0.85rem; font-weight: 800; color: #FF6B35;">{{ nutrition.calories }} kcal</div>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="insight-box rounded-3 p-3 text-center h-100 border"
-                                 style="background: linear-gradient(135deg, #f0fdf4, #fff);">
+                            <div class="insight-box rounded-3 p-3 text-center h-100 border" style="background: linear-gradient(135deg, #f0fdf4, #fff);">
                                 <i class="fas fa-heartbeat text-success mb-2 fs-4"></i>
-                                <div class="small fw-semibold">Health Score</div>
-                                <div style="font-size: 0.8rem; font-weight: 800; color: #4CAF82;">{{ nutrition.health_score }}/100</div>
+                                <div class="small fw-semibold text-dark">Health Score</div>
+                                <div style="font-size: 0.85rem; font-weight: 800; color: #4CAF82;">{{ nutrition.health_score }}/100</div>
                             </div>
                         </div>
                         {% endif %}
                     </div>
-
-                    <!-- Delete Button -->
-                    <form method="POST" action="{{ url_for('recipe_book.delete_recipe', recipe_id=recipe.id) }}" 
-                          onsubmit="return confirm('Are you sure you want to remove this recipe from your book?');">
-                        <button type="submit" class="btn btn-outline-danger w-100 rounded-pill fw-semibold mt-2">
-                            <i class="fas fa-trash-alt me-2"></i>Remove from Recipe Book
-                        </button>
-                    </form>
-
-                    <!-- 🎥 Generate Video Button -->
-                    <a href="{{ url_for('video.from_recipe', recipe_id=recipe.id) }}"
-                       class="btn w-100 rounded-pill fw-bold mt-2 shadow-sm"
-                       style="background:linear-gradient(135deg,#0f0f23,#1a0a0a); color:#ff9a9e; border:1.5px solid rgba(255,107,107,0.35); transition:all .3s ease;"
-                       onmouseover="this.style.boxShadow='0 6px 20px rgba(255,107,107,0.35)'; this.style.borderColor='rgba(255,107,107,0.7)'"
-                       onmouseout="this.style.boxShadow=''; this.style.borderColor='rgba(255,107,107,0.35)'">
-                        <i class="fas fa-film me-2"></i>🎥 Generate Cooking Video
-                    </a>
-                    {% if recipe.video_path %}
-                    <div class="mt-2 text-center">
-                        <small style="color:rgba(0,0,0,0.45);">
-                            <i class="fas fa-check-circle text-success me-1"></i>
-                            Video available in {{ recipe.video_language or 'English' }}
-                            <a href="{{ url_for('static', filename=recipe.video_path) }}"
-                               class="ms-1 text-decoration-none" style="color:#ff6b6b;" download>
-                                <i class="fas fa-download"></i> Download
-                            </a>
-                        </small>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
+            
+            <!-- Nutrition Card in Left Column -->
+            {% include 'components/nutrition_card.html' %}
         </div>
-
 
         <!-- Right Col: Ingredients & Instructions -->
         <div class="col-lg-8">
+            <!-- Recipe Title Header -->
+            <div class="mb-4">
+                <h1 class="display-4 fw-extrabold font-outfit text-dark mb-2 text-capitalize" style="letter-spacing: -1.5px; font-weight: 800;">{{ recipe.food_name }}</h1>
+                <p class="text-muted"><i class="fas fa-bookmark text-primary me-2"></i>Saved Recipe from Cookbook</p>
+            </div>
+
             <!-- Ingredients -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 border">
                 <div class="card-body p-4 p-md-5">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3 class="fw-bold font-outfit mb-0">
@@ -165,7 +143,7 @@
             </div>
 
             <!-- Cooking Instructions -->
-            <div class="card border-0 shadow-sm rounded-4">
+            <div class="card border-0 shadow-sm rounded-4 border">
                 <div class="card-body p-4 p-md-5">
                     <h3 class="fw-bold font-outfit mb-4">
                         <i class="fas fa-list-ol text-primary me-2"></i> Cooking Instructions
@@ -186,14 +164,61 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            {% include 'components/nutrition_card.html' %}
-
-            <!-- 🧑‍🍳 Ask Chef AI Chat Panel -->
-            <div class="mt-4">
-                {% include 'components/chef_chat.html' %}
+    <!-- Below Section: Actions & Chatbot -->
+    <div class="row g-4 mt-4">
+        <!-- Delete Recipe Action Card -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border">
+                <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
+                    <div class="mb-2 text-danger fs-3"><i class="fas fa-trash-alt"></i></div>
+                    <h5 class="fw-bold font-outfit text-dark mb-1">Remove from Book</h5>
+                    <p class="small text-secondary mb-3">Remove this recipe from your cookbook. This action cannot be undone.</p>
+                    <form method="POST" action="{{ url_for('recipe_book.delete_recipe', recipe_id=recipe.id) }}" 
+                          onsubmit="return confirm('Are you sure you want to remove this recipe from your book?');" class="w-100">
+                        <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-semibold">
+                            <i class="fas fa-trash-alt me-2"></i>Remove Recipe
+                        </button>
+                    </form>
+                </div>
             </div>
+        </div>
 
+        <!-- Video Generation Card -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 border" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 1.5px solid rgba(255,107,107,0.15) !important;">
+                <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
+                    <div class="mb-2"><span style="font-size:2rem;">🎬</span></div>
+                    <h5 class="fw-bold font-outfit mb-1" style="color:#ff9a9e;">AI Cooking Video</h5>
+                    <p class="small mb-3 text-light text-opacity-50">Generate a step-by-step narrated video cooking guide in your language.</p>
+                    
+                    <a href="{{ url_for('video.from_recipe', recipe_id=recipe.id) }}"
+                       class="btn fw-bold rounded-pill px-4 py-2 shadow-sm text-decoration-none"
+                       style="background:linear-gradient(135deg,#ff6b6b,#ee5a6f);color:#fff;border:none;font-size:1rem;transition:all .3s ease;"
+                       onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(255,107,107,0.45)'"
+                       onmouseout="this.style.transform='';this.style.boxShadow=''">
+                        <i class="fas fa-film me-2"></i>Generate Video
+                    </a>
+                    {% if recipe.video_path %}
+                    <div class="mt-2">
+                        <small class="text-light text-opacity-50">
+                            <i class="fas fa-check-circle text-success me-1"></i>
+                            Video language: {{ recipe.video_language|title or 'English' }}
+                            <a href="{{ url_for('static', filename=recipe.video_path) }}" class="ms-2 text-decoration-none font-outfit fw-semibold" style="color:#ff9a9e;" download>
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Chatbot Panel full-width -->
+        <div class="col-12 mt-4">
+            {% include 'components/chef_chat.html' %}
         </div>
     </div>
 </div>

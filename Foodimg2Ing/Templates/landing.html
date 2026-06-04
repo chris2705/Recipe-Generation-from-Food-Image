@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import "components/feature_cards.html" as cards %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
@@ -7,21 +6,20 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-section text-center text-lg-start position-relative overflow-hidden pt-5 pb-5 pt-lg-8 pb-lg-8">
+<section class="hero-section text-center text-lg-start position-relative overflow-hidden pt-5 pb-5 pt-lg-8 pb-lg-8 bg-white">
     <div class="container position-relative z-index-1">
         <div class="row align-items-center gx-5">
             <div class="col-lg-6 mb-5 mb-lg-0">
-                <div class="badge bg-primary-subtle text-primary mb-3 px-3 py-2 rounded-pill fw-semibold shadow-sm">
-                    ✨ Version 2.0 Now Live
-                </div>
-                <h1 class="display-3 fw-bolder text-dark mb-4 font-outfit hero-title">
-                    Transform <span class="text-gradient">Any Food Image</span> Into A Complete Recipe.
+                <h1 class="display-4 fw-extrabold text-dark mb-4 font-outfit hero-title" style="letter-spacing: -1.5px; font-weight: 800; line-height: 1.15;">
+                    Transform Food Images <br>into <span class="text-gradient">Complete Recipes</span> with AI
                 </h1>
-                <p class="lead text-secondary mb-5 fw-normal pe-lg-5">
-                    Upload a food image and instantly discover the dish name, ingredients, cooking instructions, and AI-generated recipe recommendations.
+                <p class="lead text-secondary mb-5 fw-normal pe-lg-5" style="font-size: 1.15rem; line-height: 1.6;">
+                    Upload a food image and instantly receive ingredients, step-by-step cooking instructions, nutrition insights, AI cooking assistance, and recipe videos.
                 </p>
                 <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
-                    <a href="{{ url_for('generate') }}" class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-semibold shadow-lg hover-lift">Get Started</a>
+                    <a href="{{ url_for('generate') }}" class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-semibold shadow-lg hover-lift">
+                        Generate Recipe
+                    </a>
                     <a href="{{ url_for('demo') }}" class="btn btn-outline-dark btn-lg rounded-pill px-5 py-3 fw-semibold hover-lift d-flex align-items-center justify-content-center">
                         <i class="fas fa-play-circle me-2"></i> Try Demo
                     </a>
@@ -29,21 +27,20 @@
             </div>
             <div class="col-lg-6">
                 <div class="hero-image-wrapper position-relative">
-                    <div class="blob-shape bg-primary opacity-25 position-absolute w-100 h-100 rounded-circle filter-blur z-index-0"></div>
-                    <!-- Using cover.jpg as a placeholder for the hero image -->
+                    <div class="blob-shape bg-primary opacity-10 position-absolute w-100 h-100 rounded-circle filter-blur z-index-0"></div>
                     <img src="{{ url_for('static', filename='images/cover.jpg') }}" alt="AI Recipe Generator Interface" class="img-fluid rounded-4 shadow-2xl position-relative z-index-1 border border-light border-4">
                     
                     <!-- Floating Cards for effect -->
-                    <div class="floating-card bg-white p-3 rounded-3 shadow position-absolute top-10 start-0 translate-middle-x z-index-2 fade-in-up delay-1">
+                    <div class="floating-card bg-white p-3 rounded-3 shadow-lg position-absolute top-10 start-0 translate-middle-x z-index-2 fade-in-up delay-1 border">
                         <div class="d-flex align-items-center">
-                            <div class="bg-success text-white rounded-circle p-2 me-2"><i class="fas fa-check"></i></div>
-                            <span class="fw-bold small">Pizza Detected</span>
+                            <div class="bg-success text-white rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:0.75rem;"><i class="fas fa-check"></i></div>
+                            <span class="fw-bold small text-dark">Meal Detected</span>
                         </div>
                     </div>
-                    <div class="floating-card bg-white p-3 rounded-3 shadow position-absolute bottom-10 end-0 translate-middle-x z-index-2 fade-in-up delay-2">
+                    <div class="floating-card bg-white p-3 rounded-3 shadow-lg position-absolute bottom-10 end-0 translate-middle-x z-index-2 fade-in-up delay-2 border">
                         <div class="d-flex align-items-center">
-                            <div class="bg-warning text-dark rounded-circle p-2 me-2"><i class="fas fa-magic"></i></div>
-                            <span class="fw-bold small">Generating Recipe...</span>
+                            <div class="bg-warning text-dark rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:0.75rem;"><i class="fas fa-magic"></i></div>
+                            <span class="fw-bold small text-dark">Recipe Generated!</span>
                         </div>
                     </div>
                 </div>
@@ -53,76 +50,170 @@
 </section>
 
 <!-- Features Section -->
-<section class="py-5 bg-light">
+<section class="py-5 bg-light border-top border-bottom">
     <div class="container py-4">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold font-outfit">Powerful AI Features</h2>
-            <p class="text-secondary">Everything you need to reverse-engineer your favorite meals.</p>
+        <div class="text-center mb-5 max-w-600 mx-auto">
+            <h2 class="fw-bold font-outfit text-dark display-5" style="letter-spacing: -1px;">AI-Powered Features</h2>
+            <p class="text-secondary lead fs-6">Everything you need to turn inspiration into delicious dinners.</p>
         </div>
-        <div class="row">
-            {{ cards.feature_card('fas fa-camera-retro', 'Food Recognition', 'State-of-the-art vision models identify exact food items from user-uploaded images.') }}
-            {{ cards.feature_card('fas fa-carrot', 'Ingredient Prediction', 'Automatically breaks down the dish into a comprehensive list of likely ingredients.') }}
-            {{ cards.feature_card('fas fa-receipt', 'AI Recipe Generation', 'Generates complete, step-by-step cooking instructions instantly from the recognized meal.') }}
-            {{ cards.feature_card('fas fa-book-open', 'Personal Recipe Book', 'Save your favorite AI-generated recipes and revisit them anytime from your personal collection.') }}
+        <div class="row g-4">
+            <!-- Feature 1 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center hover-lift transition-all bg-white">
+                    <div class="card-body">
+                        <div class="feature-icon-wrapper mb-3 mx-auto">
+                            <i class="fas fa-robot fs-3 text-primary"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark font-outfit mb-2">AI Recipe Generation</h5>
+                        <p class="card-text text-secondary small">Upload food photos and generate recipes instantly.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Feature 2 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center hover-lift transition-all bg-white">
+                    <div class="card-body">
+                        <div class="feature-icon-wrapper mb-3 mx-auto">
+                            <i class="fas fa-heartbeat fs-3 text-primary"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark font-outfit mb-2">Nutrition Analysis</h5>
+                        <p class="card-text text-secondary small">Calories, macros, health score, and dietary insights.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Feature 3 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center hover-lift transition-all bg-white">
+                    <div class="card-body">
+                        <div class="feature-icon-wrapper mb-3 mx-auto">
+                            <i class="fas fa-comments fs-3 text-primary"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark font-outfit mb-2">AI Chef Assistant</h5>
+                        <p class="card-text text-secondary small">Ask cooking questions using recipe and image context.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Feature 4 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center hover-lift transition-all bg-white">
+                    <div class="card-body">
+                        <div class="feature-icon-wrapper mb-3 mx-auto">
+                            <i class="fas fa-book-open fs-3 text-primary"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark font-outfit mb-2">Recipe Book</h5>
+                        <p class="card-text text-secondary small">Save favorite recipes securely.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Feature 5 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center hover-lift transition-all bg-white">
+                    <div class="card-body">
+                        <div class="feature-icon-wrapper mb-3 mx-auto">
+                            <i class="fas fa-film fs-3 text-primary"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark font-outfit mb-2">Recipe Videos</h5>
+                        <p class="card-text text-secondary small">Generate AI-assisted cooking walkthrough videos.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Feature 6 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center hover-lift transition-all bg-white">
+                    <div class="card-body">
+                        <div class="feature-icon-wrapper mb-3 mx-auto">
+                            <i class="fas fa-globe fs-3 text-primary"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark font-outfit mb-2">Multilingual Support</h5>
+                        <p class="card-text text-secondary small">Interact in multiple languages.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- How It Works Section -->
-<section class="py-5">
+<section class="py-5 bg-white">
     <div class="container py-4 text-center">
-        <h2 class="fw-bold mb-5 font-outfit">How It Works</h2>
+        <h2 class="fw-bold mb-5 font-outfit display-5 text-dark" style="letter-spacing: -1px;">How It Works</h2>
         <div class="row position-relative timeline-row">
             <div class="col-md-3 mb-4 mb-md-0 position-relative">
                 <div class="timeline-step mx-auto mb-3 bg-primary text-white fs-4 fw-bold shadow">1</div>
-                <h5 class="fw-bold">Upload Image</h5>
-                <p class="text-muted small">Snap a photo or upload an image of any dish.</p>
+                <h5 class="fw-bold text-dark font-outfit">Upload Image</h5>
+                <p class="text-secondary small">Snap a photo or upload an image of any dish.</p>
             </div>
             <div class="col-md-3 mb-4 mb-md-0 position-relative">
                 <div class="timeline-step mx-auto mb-3 bg-primary text-white fs-4 fw-bold shadow">2</div>
-                <h5 class="fw-bold">AI Analysis</h5>
-                <p class="text-muted small">Our neural network analyzes the food structure.</p>
+                <h5 class="fw-bold text-dark font-outfit">AI Analysis</h5>
+                <p class="text-secondary small">Our neural network analyzes the food structure.</p>
             </div>
             <div class="col-md-3 mb-4 mb-md-0 position-relative">
                 <div class="timeline-step mx-auto mb-3 bg-primary text-white fs-4 fw-bold shadow">3</div>
-                <h5 class="fw-bold">Ingredient Detection</h5>
-                <p class="text-muted small">Identifies core components and seasonings.</p>
+                <h5 class="fw-bold text-dark font-outfit">Ingredient Detection</h5>
+                <p class="text-secondary small">Identifies core components and seasonings.</p>
             </div>
             <div class="col-md-3 mb-4 mb-md-0 position-relative">
                 <div class="timeline-step mx-auto mb-3 bg-primary text-white fs-4 fw-bold shadow">4</div>
-                <h5 class="fw-bold">Recipe Generation</h5>
-                <p class="text-muted small">Receive your step-by-step cooking guide.</p>
+                <h5 class="fw-bold text-dark font-outfit">Recipe Generation</h5>
+                <p class="text-secondary small">Receive your step-by-step cooking guide.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Future Features Section -->
-<section class="py-5 bg-dark text-light">
+<!-- Statistics Section -->
+<section class="py-5 bg-dark text-light" style="background-color: #0f172a !important;">
     <div class="container py-4">
         <div class="text-center mb-5">
-            <span class="text-primary fw-bold text-uppercase tracking-wide small">Roadmap</span>
-            <h2 class="fw-bold font-outfit text-white mt-2">Upcoming Features</h2>
-            <p class="text-secondary">We are continuously expanding the platform. Here is what is next.</p>
+            <h2 class="fw-bold font-outfit text-white display-6">Application Capabilities</h2>
+            <p class="text-secondary">Explore the performance metrics of our artificial intelligence engine.</p>
         </div>
-        <div class="row justify-content-center">
-            {{ cards.upcoming_feature('fas fa-brain', 'Gemini AI Integration') }}
-            {{ cards.upcoming_feature('fas fa-heartbeat', 'Nutrition Analysis') }}
-            {{ cards.upcoming_feature('fas fa-fire-alt', 'Calorie Estimation') }}
-            {{ cards.upcoming_feature('fas fa-calendar-alt', 'Meal Planning') }}
-            {{ cards.upcoming_feature('fas fa-leaf', 'Dietary Recommendations') }}
-            {{ cards.upcoming_feature('fas fa-history', 'Recipe History') }}
-            {{ cards.upcoming_feature('fas fa-star', 'Recipe Ratings') }}
-            {{ cards.upcoming_feature('fas fa-share-alt', 'Social Sharing') }}
+        <div class="row text-center g-4 justify-content-center">
+            <!-- Stat 1 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="p-3 border border-secondary border-opacity-25 rounded-4 h-100 d-flex flex-column justify-content-center bg-white bg-opacity-5">
+                    <h3 class="fw-extrabold text-primary font-outfit mb-2" style="font-size: 1.8rem; font-weight: 800;">100%</h3>
+                    <div class="small text-secondary fw-semibold">AI-Powered</div>
+                </div>
+            </div>
+            <!-- Stat 2 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="p-3 border border-secondary border-opacity-25 rounded-4 h-100 d-flex flex-column justify-content-center bg-white bg-opacity-5">
+                    <h3 class="fw-extrabold text-primary font-outfit mb-2" style="font-size: 1.8rem; font-weight: 800;">Instant</h3>
+                    <div class="small text-secondary fw-semibold">Image Recognition</div>
+                </div>
+            </div>
+            <!-- Stat 3 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="p-3 border border-secondary border-opacity-25 rounded-4 h-100 d-flex flex-column justify-content-center bg-white bg-opacity-5">
+                    <h3 class="fw-extrabold text-primary font-outfit mb-2" style="font-size: 1.8rem; font-weight: 800;">Deep</h3>
+                    <div class="small text-secondary fw-semibold">Nutrition Insights</div>
+                </div>
+            </div>
+            <!-- Stat 4 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="p-3 border border-secondary border-opacity-25 rounded-4 h-100 d-flex flex-column justify-content-center bg-white bg-opacity-5">
+                    <h3 class="fw-extrabold text-primary font-outfit mb-2" style="font-size: 1.8rem; font-weight: 800;">Secure</h3>
+                    <div class="small text-secondary fw-semibold">Recipe Storage</div>
+                </div>
+            </div>
+            <!-- Stat 5 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="p-3 border border-secondary border-opacity-25 rounded-4 h-100 d-flex flex-column justify-content-center bg-white bg-opacity-5">
+                    <h3 class="fw-extrabold text-primary font-outfit mb-2" style="font-size: 1.8rem; font-weight: 800;">HD</h3>
+                    <div class="small text-secondary fw-semibold">Video Generation</div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- CTA Section -->
-<section class="py-5 cta-section text-center position-relative overflow-hidden">
+<section class="py-5 cta-section text-center position-relative overflow-hidden bg-white">
     <div class="container position-relative z-index-1 py-5">
-        <h2 class="display-5 fw-bold mb-4 font-outfit">Ready to Generate Your Recipe?</h2>
-        <p class="lead mb-5 text-secondary">Join the future of cooking today. No credit card required.</p>
+        <h2 class="display-5 fw-bold mb-4 font-outfit text-dark" style="letter-spacing: -1.5px; font-weight: 800;">Ready to Generate Your Recipe?</h2>
+        <p class="lead mb-5 text-secondary">Join the future of cooking today. Upload a dish photo and see the magic.</p>
         <a href="{{ url_for('generate') }}" class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold shadow-lg hover-lift">
             Start Cooking With AI
         </a>

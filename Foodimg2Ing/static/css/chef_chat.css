@@ -82,6 +82,31 @@
     color: #fff;
 }
 
+.chef-gender-select {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    border-radius: 0.75rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.chef-gender-select:hover,
+.chef-gender-select:focus {
+    background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.chef-gender-select option {
+    background: #1a1a1a;
+    color: #fff;
+}
+
 /* ── Messages Area ─────────────────────────────────────────────────── */
 .chef-chat-messages {
     height: 420px;
@@ -338,60 +363,72 @@
 
 /* ── Input Area ────────────────────────────────────────────────────── */
 .chef-chat-input-area {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     padding: 1rem 1.25rem;
     border-top: 1px solid #f0f0f0;
     background: #fff;
 }
 
-.chef-chat-input {
-    flex: 1;
+.chef-chat-input-wrapper {
+    display: flex;
+    align-items: center;
     border: 1.5px solid #e8e8e8;
-    border-radius: 1.5rem;
-    padding: 0.7rem 1.1rem;
-    font-size: 0.9rem;
-    font-family: 'Inter', sans-serif;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 1.75rem;
+    padding: 0.25rem 0.5rem 0.25rem 1.25rem;
     background: #fafafa;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    width: 100%;
 }
 
-.chef-chat-input:focus {
+.chef-chat-input-wrapper:focus-within {
     border-color: #ff6b6b;
     box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
     background: #fff;
+}
+
+.chef-chat-input {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    padding: 0.5rem 0;
+    font-size: 0.92rem;
+    font-family: 'Inter', sans-serif;
+    color: #111827;
 }
 
 .chef-chat-input::placeholder {
     color: #b0b0b0;
 }
 
+.chef-chat-input-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
 .btn-voice-input {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    border: 1.5px solid #e8e8e8;
-    background: #fff;
+    border: none;
+    background: transparent;
     color: #6b7280;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
-    transition: all 0.25s ease;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
     flex-shrink: 0;
 }
 
 .btn-voice-input:hover {
-    border-color: #ff6b6b;
     color: #ff6b6b;
-    background: rgba(255, 107, 107, 0.04);
+    background: rgba(255, 107, 107, 0.08);
 }
 
 .btn-voice-input.recording {
-    border-color: #ef4444;
+    border: 1.5px solid #ef4444;
     color: #ef4444;
     background: rgba(239, 68, 68, 0.08);
     animation: pulseRecording 1.5s infinite;
@@ -403,8 +440,8 @@
 }
 
 .btn-send-chat {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     border: none;
     background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
@@ -413,26 +450,28 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
-    transition: all 0.25s ease;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
     flex-shrink: 0;
-    box-shadow: 0 3px 12px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.25);
 }
 
 .btn-send-chat:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 16px rgba(255, 107, 107, 0.4);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.35);
 }
 
 .btn-send-chat:active {
-    transform: translateY(0);
+    transform: scale(0.98);
 }
 
 .btn-send-chat:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+    transform: none !important;
+    box-shadow: none !important;
+    background: #e5e7eb !important;
+    color: #9ca3af !important;
 }
 
 /* ── Animations ────────────────────────────────────────────────────── */
@@ -471,9 +510,11 @@
         gap: 0.5rem;
     }
 
-    .chef-lang-select {
+    .chef-lang-select,
+    .chef-gender-select {
         width: 100%;
         margin-top: 0.25rem;
+        margin-left: 0 !important;
     }
 
     .chef-msg {

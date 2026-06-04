@@ -1,27 +1,19 @@
 /**
- * Speech Output — Browser SpeechSynthesis API for Chef Chat TTS.
+ * Speech Output — Server-side Edge-TTS + Browser fallback.
  *
- * Converts Chef AI text responses to speech using the browser's
- * built-in text-to-speech engine. Supports multiple languages.
- *
- * Language support:
- *   en -> en-US, ml -> ml-IN, hi -> hi-IN,
- *   ta -> ta-IN, te -> te-IN, kn -> kn-IN
+ * Synthesizes Chef AI chatbot responses on the server using Edge-TTS
+ * and falls back to window.speechSynthesis if the server is offline or fails.
  */
 
 (function () {
     'use strict';
 
     var synth = window.speechSynthesis;
+    var currentAudio = null;
+    var currentButton = null;
 
-    if (!synth) {
-        console.warn('[SpeechOutput] Browser does not support SpeechSynthesis.');
-        window.SpeechOutput = { speak: function () { } };
-        return;
-    }
-
-    // ── Language Map ──────────────────────────────────────────────────
-    var LANG_MAP = {
+    // ── Language tag mapping for browser fallback ────────────────────
+    var BROWSER_LANG_MAP = {
         'en': 'en-US',
         'ml': 'ml-IN',
         'hi': 'hi-IN',
@@ -30,43 +22,82 @@
         'kn': 'kn-IN',
     };
 
-    var currentUtterance = null;
-    var currentButton = null;
+    /**
+     * Stop all currently playing TTS audio (either server MP3 or browser voice).
+     */
+    function _stopAllPlayback() {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+        if (synth && synth.speaking) {
+            synth.cancel();
+        }
+        _resetButton(currentButton);
+    }
 
     /**
-     * Speak text aloud using browser TTS.
-     *
-     * @param {string} text - The text to speak.
-     * @param {string} langCode - Language code (en, ml, hi, ta, te, kn).
-     * @param {HTMLElement} [btn] - The listen button element (for toggling state).
+     * Reset a button to its default "Listen" state.
      */
-    function speak(text, langCode, btn) {
-        // Stop any currently playing audio
-        if (synth.speaking) {
-            synth.cancel();
-            _resetButton(currentButton);
+    function _resetButton(btn) {
+        if (btn) {
+            btn.classList.remove('playing');
+            btn.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+        }
+    }
 
-            // If clicking the same button, just stop
-            if (currentButton === btn) {
-                currentButton = null;
-                currentUtterance = null;
-                return;
-            }
+    /**
+     * Play an audio URL (MP3) using HTML5 Audio.
+     */
+    function _playAudioUrl(url, btn) {
+        currentAudio = new Audio(url);
+
+        if (btn) {
+            btn.classList.add('playing');
+            btn.innerHTML = '<i class="fas fa-volume-mute"></i> Stop';
         }
 
-        // Clean the text for speech (remove markdown-like formatting)
-        var cleanText = _cleanForSpeech(text);
-        if (!cleanText) return;
+        currentAudio.onended = function () {
+            _resetButton(btn);
+            currentButton = null;
+            currentAudio = null;
+        };
+
+        currentAudio.onerror = function (err) {
+            console.error('[SpeechOutput] HTML5 Audio playback error:', err);
+            _resetButton(btn);
+            currentButton = null;
+            currentAudio = null;
+        };
+
+        currentAudio.play().catch(function (e) {
+            console.error('[SpeechOutput] HTML5 Audio playback failed (possibly blocked by autoplay policies):', e);
+            _resetButton(btn);
+            currentButton = null;
+            currentAudio = null;
+        });
+    }
+
+    /**
+     * Fallback to the browser's speechSynthesis.
+     */
+    function _playBrowserFallback(cleanText, langCode, btn) {
+        if (!synth) {
+            console.warn('[SpeechOutput] SpeechSynthesis is not supported by this browser.');
+            _resetButton(btn);
+            currentButton = null;
+            return;
+        }
 
         var utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = LANG_MAP[langCode] || 'en-US';
+        utterance.lang = BROWSER_LANG_MAP[langCode] || 'en-US';
         utterance.rate = 0.95;
         utterance.pitch = 1.0;
         utterance.volume = 1.0;
 
-        // Try to find a matching voice
+        // Try to match a native speech voice for the language
         var voices = synth.getVoices();
-        var targetLang = LANG_MAP[langCode] || 'en-US';
+        var targetLang = BROWSER_LANG_MAP[langCode] || 'en-US';
         var matchedVoice = null;
 
         for (var i = 0; i < voices.length; i++) {
@@ -76,7 +107,7 @@
             }
         }
 
-        // Fallback: match by language prefix
+        // Prefix match fallback
         if (!matchedVoice) {
             var langPrefix = targetLang.split('-')[0];
             for (var j = 0; j < voices.length; j++) {
@@ -91,9 +122,7 @@
             utterance.voice = matchedVoice;
         }
 
-        // Update button state
         if (btn) {
-            currentButton = btn;
             btn.classList.add('playing');
             btn.innerHTML = '<i class="fas fa-volume-mute"></i> Stop';
         }
@@ -101,22 +130,19 @@
         utterance.onend = function () {
             _resetButton(btn);
             currentButton = null;
-            currentUtterance = null;
         };
 
         utterance.onerror = function (e) {
-            console.warn('[SpeechOutput] Error:', e.error);
+            console.warn('[SpeechOutput] Browser speechSynthesis error:', e.error);
             _resetButton(btn);
             currentButton = null;
-            currentUtterance = null;
         };
 
-        currentUtterance = utterance;
         synth.speak(utterance);
     }
 
     /**
-     * Clean text for speech output (remove markdown formatting).
+     * Clean text for clean narration (remove markdown formatting).
      */
     function _cleanForSpeech(text) {
         return text
@@ -132,24 +158,75 @@
     }
 
     /**
-     * Reset a listen button to its default state.
+     * Primary speak function.
+     * Tries server-side synthesis first, then falls back to browser TTS.
+     *
+     * @param {string} text - Chatbot message text to read.
+     * @param {string} langCode - Language code ('en', 'ml', 'hi', etc.)
+     * @param {HTMLElement} [btn] - The listen button element.
      */
-    function _resetButton(btn) {
-        if (btn) {
-            btn.classList.remove('playing');
-            btn.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+    function speak(text, langCode, btn) {
+        // Toggle play state: if clicking the currently playing speaker, stop it
+        if (currentButton === btn && (currentAudio || (synth && synth.speaking))) {
+            _stopAllPlayback();
+            currentButton = null;
+            return;
         }
+
+        // Stop any active audio first
+        _stopAllPlayback();
+
+        var cleanText = _cleanForSpeech(text);
+        if (!cleanText) return;
+
+        // Visual loading spinner state
+        if (btn) {
+            currentButton = btn;
+            btn.classList.add('playing');
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Loading...';
+        }
+
+        // Get gender selection from DOM dropdown selector
+        var gender = 'female';
+        var genderSelector = document.getElementById('chef-gender-selector');
+        if (genderSelector) {
+            gender = genderSelector.value;
+        }
+
+        // Request server Edge-TTS audio
+        fetch('/chef-ai/tts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: cleanText,
+                language: langCode,
+                gender: gender
+            })
+        })
+        .then(function (res) {
+            if (!res.ok) {
+                throw new Error('HTTP status ' + res.status);
+            }
+            return res.json();
+        })
+        .then(function (data) {
+            if (data.url) {
+                _playAudioUrl(data.url, btn);
+            } else {
+                throw new Error('No URL in response');
+            }
+        })
+        .catch(function (err) {
+            console.warn('[SpeechOutput] Server Edge-TTS failed: ' + err.message + '. Falling back to browser SpeechSynthesis.');
+            _playBrowserFallback(cleanText, langCode, btn);
+        });
     }
 
-    // Ensure voices are loaded (some browsers load asynchronously)
-    if (synth.onvoiceschanged !== undefined) {
-        synth.onvoiceschanged = function () {
-            /* voices loaded */
-        };
-    }
-
-    // ── Expose globally ───────────────────────────────────────────────
+    // Expose TTS API
     window.SpeechOutput = {
-        speak: speak,
+        speak: speak
     };
+
 })();

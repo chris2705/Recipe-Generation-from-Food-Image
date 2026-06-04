@@ -312,3 +312,103 @@ def chat_sessions():
         })
 
     return jsonify({'sessions': sessions, 'authenticated': True})
+
+
+# ---------------------------------------------------------------------------
+# POST /chef-ai/tts — Server-side Text-to-Speech synthesis
+# ---------------------------------------------------------------------------
+@chef_ai_bp.route('/chef-ai/tts', methods=['POST'])
+def chef_tts_endpoint():
+    """
+    Generate neural TTS audio on the server for a chatbot response.
+    Expects JSON:
+        {
+            "text": "Hello world",
+            "language": "en",
+            "gender": "female"
+        }
+    """
+    import hashlib
+    from Foodimg2Ing.services.tts_service import TTSService
+    
+    # Initialize TTS service
+    tts_service = TTSService()
+    
+    data = request.get_json(silent=True) or {}
+    text = data.get('text', '').strip()
+    language = data.get('language', 'en').strip()
+    gender = data.get('gender', 'female').strip().lower()
+
+    if not text:
+        return jsonify({'error': 'Text is required.'}), 400
+
+    # Map language code to full language name for voice registry mapping
+    lang_code_to_name = {
+        'en': 'english',
+        'ml': 'malayalam',
+        'hi': 'hindi',
+        'ta': 'tamil',
+        'te': 'telugu',
+        'kn': 'kannada'
+    }
+    lang_name = lang_code_to_name.get(language, 'english')
+
+    # Female / Male voice mapping configuration
+    VOICE_MAP = {
+        'english': {
+            'female': 'en-US-AriaNeural',
+            'male': 'en-US-GuyNeural'
+        },
+        'malayalam': {
+            'female': 'ml-IN-SobhanaNeural',
+            'male': 'ml-IN-MidhunNeural'
+        },
+        'hindi': {
+            'female': 'hi-IN-SwaraNeural',
+            'male': 'hi-IN-MadhurNeural'
+        },
+        'tamil': {
+            'female': 'ta-IN-PallaviNeural',
+            'male': 'ta-IN-ValluvarNeural'
+        },
+        'telugu': {
+            'female': 'te-IN-ShrutiNeural',
+            'male': 'te-IN-MohanNeural'
+        },
+        'kannada': {
+            'female': 'kn-IN-SapnaNeural',
+            'male': 'kn-IN-GaganNeural'
+        }
+    }
+
+    voice_options = VOICE_MAP.get(lang_name, VOICE_MAP['english'])
+    selected_voice = voice_options.get(gender, voice_options['female'])
+
+    # Hash parameters to generate unique cached filename
+    hash_payload = f"{text}_{selected_voice}"
+    filename_hash = hashlib.sha256(hash_payload.encode('utf-8')).hexdigest()
+    filename = f"{filename_hash}.mp3"
+
+    # Define paths
+    from flask import current_app
+    cache_dir = os.path.join(current_app.root_path, 'static', 'generated_audio')
+    os.makedirs(cache_dir, exist_ok=True)
+    output_path = os.path.join(cache_dir, filename)
+
+    relative_url = f"/static/generated_audio/{filename}"
+
+    # If already cached, return the URL instantly
+    if os.path.exists(output_path) and os.path.getsize(output_path) > 100:
+        logger.info(f"[TTS CACHE HIT] {filename}")
+        return jsonify({'url': relative_url})
+
+    # Otherwise synthesize
+    logger.info(f"[TTS CACHE MISS] Synthesizing using voice '{selected_voice}'")
+    try:
+        ok = tts_service.synthesize_step(text, lang_name, output_path, voice=selected_voice)
+        if ok:
+            return jsonify({'url': relative_url})
+    except Exception as exc:
+        logger.error(f"TTS endpoint synthesis failed: {exc}", exc_info=True)
+
+    return jsonify({'error': 'Failed to generate Text-to-Speech audio.'}), 500
